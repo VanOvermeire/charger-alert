@@ -82,18 +82,36 @@
 //     Ok(())
 // }
 
-use std::env;
-use lambda_http::Request;
-use lambda_runtime::{Error, LambdaEvent, service_fn};
+// use std::env;
+use lambda_http::{IntoResponse, Request, RequestExt, service_fn};
+use lambda_runtime::{Error};
 use serde_json::{json, Value};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // let region = env::var("REGION")?;
     // let table = env::var("TABLE")?;
-    let func = service_fn(func);
-    lambda_runtime::run(func).await?;
+    // let func = service_fn(func);
+    // lambda_runtime::run(func).await?;
+
+    lambda_http::run(service_fn(hello)).await?;
+
+
     Ok(())
+}
+
+async fn hello(
+    request: Request
+) -> Result<impl IntoResponse, std::convert::Infallible> {
+    let _context = request.lambda_context();
+
+    Ok(format!(
+        "hello {}",
+        request
+            .query_string_parameters()
+            .first("name")
+            .unwrap_or_else(|| "stranger")
+    ))
 }
 
 async fn func(request: Request) -> Result<Value, Error> {
