@@ -40,6 +40,7 @@ jobs:
       - name: Cache Rust dependencies
         uses: actions/cache@v3
         with:
+          key: ${{ env.PROJECT_NAME }}-build-cache
           path: |
             ./target/release
       - name: Upload build
