@@ -31,13 +31,18 @@ jobs:
           toolchain: stable
           target: x86_64-unknown-linux-musl
           override: true
-      - name: build Rust release
+      - name: Build Rust release
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
           args: --release --target x86_64-unknown-linux-musl
-      - name: upload build
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./target/release
+      - name: Upload build
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -61,10 +66,11 @@ jobs:
       - name: zip release
         run: zip -j ${{ env.PROJECT_NAME }}.zip ./${{ env.PROJECT_NAME }}
       - run: ls ${{ github.workspace }}
+      - run: mkdir chargerDir && mv ${{ env.PROJECT_NAME }}.zip chargerDir
       - name: Deploy
         uses: shallwefootball/s3-upload-action@master
         with:
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
           aws_bucket: ${{ secrets.AWS_BUCKET }}
-          source_dir: ./charger-alert.zip
+          source_dir: ./chargerDir
