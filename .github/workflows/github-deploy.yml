@@ -7,6 +7,7 @@ on:
 
 env:
   PROJECT_NAME: charger-alert
+  ARTIFACT_NAME: charger-alert-build
 
 jobs:
   test:
@@ -36,6 +37,11 @@ jobs:
           use-cross: true
           command: build
           args: --release --target x86_64-unknown-linux-musl
+      - name: upload build
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ./target/x86_64-unknown-linux-musl/release/charger-alert
 #      - name: zip Rust release
 #        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
 
@@ -45,11 +51,15 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
+      - name: download build
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+#      - name: Checkout source code
+#        uses: actions/checkout@v3
       - run: ls ${{ github.workspace }}
       - name: zip release
-        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
+        run: zip -j ${{ env.PROJECT_NAME }}.zip ./${{ env.PROJECT_NAME }}
       - run: ls ${{ github.workspace }}
       - name: Deploy
         uses: shallwefootball/s3-upload-action@master
