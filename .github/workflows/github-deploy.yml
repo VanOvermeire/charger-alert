@@ -9,35 +9,40 @@ env:
   PROJECT_NAME: charger-alert
 
 jobs:
-  test-and-build:
-    # TODO: check & test...
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-#      - name: setup Rust and correct target
-#        uses: actions-rs/toolchain@v1
-#        with:
-#          toolchain: stable
-#          target: x86_64-unknown-linux-musl
-#          override: true
-      - name: setup correct Rust target using rustup
-        uses: dtolnay/rust-toolchain@stable
-      - run: rustup target add x86_64-unknown-linux-musl
-      - run: cargo build --release --target x86_64-unknown-linux-musl
-#      - name: build Rust release
-#        uses: actions-rs/cargo@v1
-#        with:
-#          use-cross: true
-#          command: build
-#          args: --release --target x86_64-unknown-linux-musl
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
-
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: setup Rust and correct target
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+          override: true
+      - name: build Rust release
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target x86_64-unknown-linux-musl
 #      - name: zip Rust release
 #        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
+
   deploy: # TODO will later use CDK
     needs:
-      - test-and-build
+      - test
+      - build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
