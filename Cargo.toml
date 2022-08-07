@@ -12,6 +12,6 @@ aws-config = "0.6.0"
 aws-sdk-dynamodb = "0.6.0"
 tokio = { version = "1", features = ["full"] }
 
-#[[bin]]
-#name = "bootstrap"
-#path = "src/main.rs"
+[[bin]]
+name = "bootstrap"
+path = "src/main.rs"
