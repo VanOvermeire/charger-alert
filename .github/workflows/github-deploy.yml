@@ -1,40 +1,55 @@
 name: GitHub Actions Demo
-on: [push]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+env:
+  PROJECT_NAME: charger-alert
+
 jobs:
   test-and-build:
-    # TODO: test...
+    # TODO: check & test...
     runs-on: ubuntu-latest
     steps:
-      - run: echo " Job started by a ${{ github.event_name }}"
-#      - run: echo " This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-#      - run: echo " The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-#      - name: Check out repository code
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: x86_64-unknown-linux-musl
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target x86_64-unknown-linux-musl
-      - run: ls ${{ github.workspace }}
-      - run: ls target
-      - run: ls target/x86_64-unknown-linux-musl
-      - run: zip -j charger-alert.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
-
-#jobs:
-#  test-and-build:
-#    name: Rust project
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions-rs/toolchain@v1
+      - name: Check out repository code
+        uses: actions/checkout@v3
+#      - name: setup Rust and correct target
+#        uses: actions-rs/toolchain@v1
 #        with:
 #          toolchain: stable
-#      - uses: actions-rs/cargo@v1
+#          target: x86_64-unknown-linux-musl
+#          override: true
+      - name: setup correct Rust target using rustup
+        uses: dtolnay/rust-toolchain@stable
+      - run: rustup target add x86_64-unknown-linux-musl
+      - run: cargo build --release --target x86_64-unknown-linux-musl
+#      - name: build Rust release
+#        uses: actions-rs/cargo@v1
 #        with:
+#          use-cross: true
 #          command: build
-#          args: --release --all-features
+#          args: --release --target x86_64-unknown-linux-musl
+
+
+#      - name: zip Rust release
+#        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
+  deploy: # TODO will later use CDK
+    needs:
+      - test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - run: ls ${{ github.workspace }}
+      - name: zip release
+        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/charger-alert
+      - run: ls ${{ github.workspace }}
+      - name: Deploy
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ secrets.AWS_BUCKET }}
+          source_dir: ./charger-alert.zip
