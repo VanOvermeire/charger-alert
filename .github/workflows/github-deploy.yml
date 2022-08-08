@@ -18,17 +18,17 @@ jobs:
         include:
           - test-type: charger
             test-command: cargo test
-            test-directory: .
+#            test-directory: .
           - test-type: cdk
-            test-command: npm i && npm test
-            test-directory: infra
+            test-command: zip charger-alert.zip LICENSE && cd infra && npm i && npm test # fake zip as 'code' for the Lambda
+#            test-directory: infra
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Test ${{ matrix.test-type }}
         run: ${{ matrix.test-command }}
-        working-directory: ${{ matrix.test-directory }}
+#        working-directory: ${{ matrix.test-directory }}
 
   build:
     runs-on: ubuntu-latest
