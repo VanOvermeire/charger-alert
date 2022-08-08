@@ -12,14 +12,28 @@ env:
 
 jobs:
   test:
+    strategy:
+      matrix:
+        test-type: [ charger, cdk ]
+        include:
+          - test-type: charger
+            test-uses: actions-rs/cargo@v1
+            test-command: cargo test
+          - test-type: cdk
+            test-uses: actions/setup-node@v3
+            test-with-command: npm test
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Setup test ${{ matrix.test-type }}
+#        uses: actions-rs/cargo@v1
+        uses: ${{ matrix.test-type }}
+#        with:
+#          command: test
+#          command: ${{ matrix.test-command }}
       - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: ${{ matrix.test-command }}
 
   build:
     runs-on: ubuntu-latest
@@ -32,20 +46,20 @@ jobs:
           toolchain: stable
           target: x86_64-unknown-linux-musl
           override: true
-      - name: Build Rust release
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target x86_64-unknown-linux-musl
       - name: Cache Rust dependencies
         uses: actions/cache@v3
         with:
           key: ${{ env.PROJECT_NAME }}-build-cache
           path: |
             ./target/release
+      - name: Build Rust release
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target x86_64-unknown-linux-musl
       - name: Zip Rust release
-        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/bootstrap
+        run: zip ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/bootstrap
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
@@ -64,7 +78,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ env.ARTIFACT_NAME }}
-      - run: ls ${{ github.workspace }}
       - name: Deploy to AWS
         uses: youyo/aws-cdk-github-actions@v2
         with:
@@ -76,14 +89,3 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
-#      - name: zip release
-#        run: zip -j ${{ env.PROJECT_NAME }}.zip ./${{ env.PROJECT_NAME }}
-#      - run: ls ${{ github.workspace }}
-#      - run: mkdir chargerDir && mv ${{ env.PROJECT_NAME }}.zip chargerDir
-#      - name: Deploy
-#        uses: shallwefootball/s3-upload-action@master
-#        with:
-#          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-#          aws_bucket: ${{ secrets.AWS_BUCKET }}
-#          source_dir: ./chargerDir
