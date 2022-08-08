@@ -17,12 +17,10 @@ jobs:
         test-type: [ charger, cdk ]
         include:
           - test-type: charger
-            test-uses: actions-rs/cargo@v1
             test-command: cargo test
             test-directory: .
           - test-type: cdk
-            test-uses: actions/setup-node@v3
-            test-with-command: npm test
+            test-command: npm test
             test-directory: infra
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +32,7 @@ jobs:
 #        with:
 #          command: test
 #          command: ${{ matrix.test-command }}
-      - name: Test ${{ matrix.test-command }} in ${{ matrix.test-directory }}
+      - name: Test ${{ matrix.test-type }}
         run: ${{ matrix.test-command }}
         working-directory: ${{ matrix.test-directory }}
 
