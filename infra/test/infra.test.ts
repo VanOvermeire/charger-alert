@@ -10,6 +10,6 @@ test('Creates a Lambda with a custom runtime', () => {
     const template = Template.fromStack(stack);
 
     template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: "provided.al2"
+        Runtime: "provided.al2FAKE"
     });
 });
