@@ -36,7 +36,6 @@ jobs:
 #          command: ${{ matrix.test-command }}
       - name: Test
         run: ${{ matrix.test-command }}
-        {{ if }}
         working-directory: ${{ matrix.test-directory }}
 
   build:
