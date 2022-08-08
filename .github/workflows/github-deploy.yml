@@ -34,7 +34,7 @@ jobs:
 #        with:
 #          command: test
 #          command: ${{ matrix.test-command }}
-      - name: Test
+      - name: Test ${{ matrix.test-command }} in ${{ matrix.test-directory }}
         run: ${{ matrix.test-command }}
         working-directory: ${{ matrix.test-directory }}
 
