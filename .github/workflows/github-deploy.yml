@@ -20,7 +20,7 @@ jobs:
             test-command: cargo test
             test-directory: .
           - test-type: cdk
-            test-command: npm test
+            test-command: npm i && npm test
             test-directory: infra
     runs-on: ubuntu-latest
     steps:
