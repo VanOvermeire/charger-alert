@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup test ${{ matrix.test-type }}
 #        uses: actions-rs/cargo@v1
-        uses: ${{ matrix.test-type }}
+        uses: ${{ matrix.test-uses }}
 #        with:
 #          command: test
 #          command: ${{ matrix.test-command }}
