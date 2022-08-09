@@ -8,7 +8,6 @@
 // use std::env;
 // use std::sync::Arc;
 // use aws_config::meta::region::RegionProviderChain;
-// use aws_sdk_dynamodb::{Client, Error, Region};
 // use aws_sdk_dynamodb::model::AttributeValue;
 // use lambda_runtime::{handler_fn, Context};
 // use serde::{Deserialize, Serialize};
@@ -82,13 +81,19 @@
 //     Ok(())
 // }
 
+mod adapters;
+
 // use std::env;
+use std::error::Error;
 use lambda_http::{IntoResponse, Request, RequestExt, service_fn};
-use lambda_runtime::{Error};
+use aws_sdk_dynamodb::{Client, Region, SdkError};
+use aws_sdk_dynamodb::error::PutItemError;
+use aws_sdk_dynamodb::model::AttributeValue;
+use aws_sdk_dynamodb::output::PutItemOutput;
 use serde_json::{json, Value};
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), lambda_runtime::Error> {
     // let region = env::var("REGION")?;
     // let table = env::var("TABLE")?;
     // let func = service_fn(func);
@@ -114,10 +119,14 @@ async fn hello(
     ))
 }
 
-async fn func(request: Request) -> Result<Value, Error> {
+async fn func(request: Request) -> Result<Value, lambda_runtime::Error> {
     println!("{:?}", request);
     // let (event, _context) = event.into_parts();
     // let first_name = event["firstName"].as_str().unwrap_or("world");
 
     Ok(json!({ "message": format!("Hello Sam!") }))
 }
+
+// #[tokio::test]
+// async fn test() {
+// }
