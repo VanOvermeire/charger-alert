@@ -127,6 +127,7 @@ async fn func(request: Request) -> Result<Value, lambda_runtime::Error> {
     Ok(json!({ "message": format!("Hello Sam!") }))
 }
 
-// #[tokio::test]
-// async fn test() {
-// }
+#[tokio::test]
+async fn test() {
+    assert_eq!(1, 1)
+}
