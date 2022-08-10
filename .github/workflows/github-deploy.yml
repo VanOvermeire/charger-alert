@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Charger Alert Deployment
 on:
   workflow_dispatch:
   push:
@@ -51,7 +51,7 @@ jobs:
           command: build
           args: --release --target x86_64-unknown-linux-musl
       - name: Zip Rust release
-        run: zip ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/bootstrap
+        run: zip -j ${{ env.PROJECT_NAME }}.zip ./target/x86_64-unknown-linux-musl/release/bootstrap
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
