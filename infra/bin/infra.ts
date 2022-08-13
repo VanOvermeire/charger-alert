@@ -4,4 +4,4 @@ import * as cdk from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
 
 const app = new cdk.App();
-new InfraStack(app, 'InfraStack', {});
+new InfraStack(app, 'ChargerStack', {});

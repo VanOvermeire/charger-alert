@@ -6,7 +6,7 @@ import {CorsHttpMethod, HttpApi, HttpMethod} from "@aws-cdk/aws-apigatewayv2-alp
 import {HttpLambdaIntegration} from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 
 export const buildHttpApiWithLambdas = (scope: Construct) => (chargerAlert: Function): HttpApi => {
-    const httpApi = new HttpApi(scope, 'DocumentBackendApi', {
+    const httpApi = new HttpApi(scope, 'ChargerAlertApi', {
         // needed for web testing
         corsPreflight: {
             allowHeaders: ['Authorization'],
@@ -19,6 +19,7 @@ export const buildHttpApiWithLambdas = (scope: Construct) => (chargerAlert: Func
             allowOrigins: ['*'],
             maxAge: Duration.days(10),
         },
+
     });
 
     const alertIntegration = new HttpLambdaIntegration('AlertPost', chargerAlert);
