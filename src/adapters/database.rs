@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::{Display, Formatter, write};
-use aws_sdk_dynamodb::{Client, SdkError};
-use aws_sdk_dynamodb::error::PutItemError;
-use aws_sdk_dynamodb::model::AttributeValue;
+use std::fmt::{Display, Formatter};
+// use aws_sdk_dynamodb::{Client, SdkError};
+// use aws_sdk_dynamodb::error::PutItemError;
+// use aws_sdk_dynamodb::model::AttributeValue;
 use async_trait::async_trait;
 
 #[derive(Debug)]

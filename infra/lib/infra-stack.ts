@@ -1,14 +1,15 @@
 import {Stack, StackProps} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {createFunctions} from "./modules/functions";
-import {buildHttpApiWithLambdas} from "./modules/api";
+import {createHttpApi} from "./modules/api";
+import {createDatabase} from "./modules/database";
 
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const { chargerAlert } = createFunctions(this);
-
-    const httpApi = buildHttpApiWithLambdas(this)(chargerAlert);
+    const table = createDatabase(this);
+    const { chargerAlert } = createFunctions(this)(table.tableName);
+    const httpApi = createHttpApi(this)(chargerAlert);
   }
 }
