@@ -44,7 +44,7 @@ mod adapters;
 
 use std::sync::Arc;
 use lambda_http::{IntoResponse, Request, RequestExt, service_fn};
-use crate::adapters::{Config};
+use crate::adapters::{ChargerRequest, Config};
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
@@ -59,11 +59,11 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 }
 
 async fn fun(request: Request, config_result: Arc<Config>) -> Result<impl IntoResponse, std::convert::Infallible> {
+    let charger_request: ChargerRequest = request.try_into().expect("try_into to succeed"); // TODO later no expects - and then?
+    println!("Config is {:?}", config_result.as_ref());
+    println!("Transformed request {:?}", charger_request);
+
     Ok(format!(
-        "hello {}",
-        request
-            .query_string_parameters()
-            .first("name")
-            .unwrap_or_else(|| "stranger")
+        "hello stranger",
     ))
 }

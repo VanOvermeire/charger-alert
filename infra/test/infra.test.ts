@@ -4,11 +4,7 @@ import * as Infra from '../lib/infra-stack';
 
 describe('Charger infrastructure', () => {
     it('should create a Lambda with a custom runtime', () => {
-        const app = new cdk.App();
-
-        const stack = new Infra.InfraStack(app, 'TestStack');
-
-        const template = Template.fromStack(stack);
+        const template = getTemplate();
 
         template.hasResourceProperties('AWS::Lambda::Function', {
             Runtime: "provided.al2"
@@ -16,11 +12,7 @@ describe('Charger infrastructure', () => {
     });
 
     it('should create an API with lambda integration and alert route', () => {
-        const app = new cdk.App();
-
-        const stack = new Infra.InfraStack(app, 'TestStack');
-
-        const template = Template.fromStack(stack);
+        const template = getTemplate();
 
         template.hasResourceProperties('AWS::ApiGatewayV2::Api', {});
         template.hasResourceProperties('AWS::ApiGatewayV2::Integration', {
@@ -30,7 +22,18 @@ describe('Charger infrastructure', () => {
             RouteKey: 'POST /v1/alert'
         })
     });
+
+    it('should create a database', () => {
+        const template = getTemplate();
+
+        template.hasResourceProperties('AWS::DynamoDB::Table', {});
+    });
 });
 
+const getTemplate = (): Template => {
+    const app = new cdk.App();
 
+    const stack = new Infra.InfraStack(app, 'TestStack');
 
+    return Template.fromStack(stack);
+};
