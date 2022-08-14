@@ -5,27 +5,13 @@ use std::fmt::{Display, Formatter};
 // use aws_sdk_dynamodb::error::PutItemError;
 // use aws_sdk_dynamodb::model::AttributeValue;
 use async_trait::async_trait;
+use crate::adapters::AdapterError;
 
-#[derive(Debug)]
-pub enum DatabaseError {
-    PutError(String),
-    Unknown,
-}
-
-impl Display for DatabaseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DatabaseError::PutError(table) => write!(f, "Failed to write item to table {}", table),
-            DatabaseError::Unknown => write!(f, "An unknown database error occurred"),
-        }
-    }
-}
-
-impl Error for DatabaseError {}
+// TODO tests
 
 #[async_trait]
 pub trait Database {
-    async fn add<T: ToString + Send>(table: &str, items: HashMap<&str, T>) -> Result<(), DatabaseError> {
+    async fn add<T: ToString + Send>(table: &str, items: HashMap<&str, T>) -> Result<(), AdapterError> {
         Ok(())
     }
 }

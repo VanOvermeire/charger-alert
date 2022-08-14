@@ -59,9 +59,12 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 }
 
 async fn fun(request: Request, config_result: Arc<Config>) -> Result<impl IntoResponse, std::convert::Infallible> {
-    let charger_request: ChargerRequest = request.try_into().expect("try_into to succeed"); // TODO later no expects - and then?
+    let charger_request: ChargerRequest = request.try_into().expect("try_into to succeed"); // TODO later no expects - and_then?
     println!("Config is {:?}", config_result.as_ref());
     println!("Transformed request {:?}", charger_request);
+
+    // pass the given info to the database
+    // return a response
 
     Ok(format!(
         "hello stranger",
