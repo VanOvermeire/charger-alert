@@ -60,17 +60,6 @@ impl TryInto<ChargerRequest> for Request {
     fn try_into(self) -> Result<ChargerRequest, Self::Error> {
         self.payload()?
             .ok_or(AdapterError::InputError)
-        // match self.payload() {
-        //     Ok(result) => match result {
-        //         Some(r) => Ok(r),
-        //         None => {
-        //             Err(AdapterError::InputError)
-        //         }
-        //     },
-        //     Err(e) => {
-        //         Err(AdapterError::InputError)
-        //     }
-        // }
     }
 }
 
@@ -82,7 +71,6 @@ mod tests {
     #[test]
     fn should_turn_a_http_request_into_a_charger_request() {
         let body_string = r#"{ "lat": 2.3, "lon": 1.5 }"#;
-
         let mut request = Request::new(Body::Text(body_string.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
@@ -91,5 +79,41 @@ mod tests {
 
         assert_eq!(result.get_lat_and_long().0.0, 2.3);
         assert_eq!(result.get_lat_and_long().1.0, 1.5);
+    }
+
+    #[test]
+    fn should_turn_an_http_request_without_json_content_type_into_an_error() {
+        let body_string = r#"{ "lat": 2.3, "lon": 1.5 }"#;
+        let mut request = Request::new(Body::Text(body_string.to_owned()));
+        let headers = request.headers_mut();
+        headers.insert(CONTENT_TYPE, "text".parse().unwrap());
+
+        let result: Result<ChargerRequest, AdapterError> = request.try_into();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn should_turn_an_http_request_with_missing_value_into_an_error() {
+        let body_string = r#"{ "lat": 2.3 }"#;
+        let mut request = Request::new(Body::Text(body_string.to_owned()));
+        let headers = request.headers_mut();
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
+        let result: Result<ChargerRequest, AdapterError> = request.try_into();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn should_turn_an_invalid_http_request_into_an_error() {
+        let body_string_with_missing_ending_bracket = r#"{ "lat": 2.3, "lon": 1.5"#;
+        let mut request = Request::new(Body::Text(body_string_with_missing_ending_bracket.to_owned()));
+        let headers = request.headers_mut();
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
+        let result: Result<ChargerRequest, AdapterError> = request.try_into();
+
+        assert!(result.is_err());
     }
 }
