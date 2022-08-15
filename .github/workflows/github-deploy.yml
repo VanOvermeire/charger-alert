@@ -60,7 +60,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release --target x86_64-unknown-linux-musl -p ${{ build-bin-name }}
+          args: --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
       - name: Zip ${{ matrix.build-type }} release
         run: mv ./target/x86_64-unknown-linux-musl/release/${{ matrix.build-bin-name }} ./bootstrap && zip -j ${{ matrix.build-bin-name }}.zip ./bootstrap
       - name: Upload ${{ matrix.build-type }}
