@@ -83,7 +83,7 @@ jobs:
       - name: Download add alert
         uses: actions/download-artifact@v3
         with:
-          name: ${{ env.ADD_ALERT_ARTIFACT_NAME }}
+          name: add_alert_build
       - name: Deploy to AWS
         uses: youyo/aws-cdk-github-actions@v2
         with:
