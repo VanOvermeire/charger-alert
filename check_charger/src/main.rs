@@ -24,5 +24,7 @@ async fn flow(event: LambdaEvent<Value>) -> Result<Value, Error> {
         .send()?;
     println!("{:?}", res);
 
-    Ok(json!({ "message": format!("Hello, {}!", first_name) }))
+    Ok(json!(
+        { "message": "done" }
+    ))
 }
