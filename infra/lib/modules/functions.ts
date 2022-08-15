@@ -5,21 +5,34 @@ import {REGION} from "./constants";
 import {Table} from "aws-cdk-lib/aws-dynamodb";
 
 export const createFunctions = (scope: Construct) => (table: Table) => {
-    const chargerAlert = new Function(scope, 'ChargerAlert', {
+    const alertAdder = new Function(scope, 'AlertAdder', {
         code: Code.fromAsset('../add_alert_build.zip'),
         runtime: Runtime.PROVIDED_AL2,
         handler: 'some.handler',
-        timeout: Duration.seconds(30),
+        timeout: Duration.seconds(3),
         memorySize: 1024,
         environment: {
             REGION,
             TABLE: table.tableName,
         },
     });
+    table.grantWriteData(alertAdder);
 
-    table.grantWriteData(chargerAlert);
+    const chargeChecker = new Function(scope, 'ChargeChecker', {
+        code: Code.fromAsset('../check_charger_build.zip'),
+        runtime: Runtime.PROVIDED_AL2,
+        handler: 'some.handler',
+        timeout: Duration.seconds(60),
+        memorySize: 1024,
+        environment: {
+            REGION,
+            TABLE: table.tableName,
+        },
+    });
+    table.grantReadWriteData(chargeChecker);
 
     return {
-        chargerAlert,
+        alertAdder,
+        chargeChecker,
     }
 };

@@ -18,7 +18,7 @@ jobs:
           - test-type: charger
             test-command: cargo test
           - test-type: cdk
-            test-command: zip charger-alert.zip LICENSE && cd infra && npm i && npm test # fake zip as 'code' for the Lambda
+            test-command: zip add_alert_build.zip LICENSE && zip check_charger_build LICENSE && cd infra && npm i && npm test # fake zips as 'code' for the Lambda
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
