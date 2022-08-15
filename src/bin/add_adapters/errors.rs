@@ -36,7 +36,7 @@ impl From<PayloadError> for AdapterError {
 impl Error for AdapterError {}
 
 impl AdapterError {
-    pub fn to_response(&self) -> lambda_http::http::Result<Response<String>> {
+    pub fn to_http_response(&self) -> lambda_http::http::Result<Response<String>> {
         match self {
             AdapterError::InputError => bad_request_response("Invalid input"),
             AdapterError::ConfigError => internal_server_error_response(),
@@ -51,7 +51,7 @@ mod tests {
 
     #[test]
     fn should_return_400_response_for_an_input_error() {
-        let result = AdapterError::InputError.to_response().expect("to_response to contain a response for input error");
+        let result = AdapterError::InputError.to_http_response().expect("to_response to contain a response for input error");
 
         assert_eq!(result.status(), 400);
         assert_eq!(result.body().to_string(), "Invalid input".to_string());
@@ -59,7 +59,7 @@ mod tests {
 
     #[test]
     fn should_return_500_response_for_a_config_error() {
-        let result = AdapterError::ConfigError.to_response().expect("to_response to contain a response for config error");
+        let result = AdapterError::ConfigError.to_http_response().expect("to_response to contain a response for config error");
 
         assert_eq!(result.status(), 500);
         assert_eq!(result.body().to_string(), "Internal server error".to_string());
@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn should_return_500_response_for_a_database_error() {
-        let result = AdapterError::DatabaseError.to_response().expect("to_response to contain a response for config error");
+        let result = AdapterError::DatabaseError.to_http_response().expect("to_response to contain a response for config error");
 
         assert_eq!(result.status(), 500);
         assert_eq!(result.body().to_string(), "Internal server error".to_string());

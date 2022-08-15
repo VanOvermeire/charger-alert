@@ -81,8 +81,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: check_charger_build
-      - name: temp
-        run: ls -al
       - name: Deploy to AWS
         uses: youyo/aws-cdk-github-actions@v2
         with:

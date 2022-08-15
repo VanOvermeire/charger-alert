@@ -1,9 +1,9 @@
 mod database;
-mod input;
+mod http_input;
 mod errors;
-mod output;
+mod http_output;
 
 pub use database::*;
-pub use input::*;
-pub use output::*;
+pub use http_input::*;
+pub use http_output::*;
 pub use errors::*;

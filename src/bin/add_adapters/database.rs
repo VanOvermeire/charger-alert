@@ -14,7 +14,7 @@ pub struct DynamoDB {
 }
 
 impl DynamoDB {
-    pub fn new(client: Client) -> DynamoDB {
+    pub fn new(client: Client) -> Self {
         DynamoDB {
             client,
         }

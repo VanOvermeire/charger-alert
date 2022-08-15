@@ -33,11 +33,11 @@ async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) 
             let lat_and_lon = req.get_lat_and_long();
             match arc_client.as_ref().add_lat_and_lon(config.as_ref().get_table().0.as_ref(), lat_and_lon.0, lat_and_lon.1).await {
                 Ok(_) => success_response(),
-                Err(e) => e.to_response(),
+                Err(e) => e.to_http_response(),
             }
         },
         Err(e) => {
-            return e.to_response()
+            return e.to_http_response()
         }
     }
 }
