@@ -9,7 +9,7 @@ const handler = 'some.handler';
 export const createFunctions = (scope: Construct) => (table: Table) => {
     const alertAdder = new Function(scope, 'AlertAdder', {
         handler,
-        code: Code.fromAsset('../add_alert_build.zip'),
+        code: Code.fromAsset('../add_alert.zip'),
         runtime: Runtime.PROVIDED_AL2,
         timeout: Duration.seconds(3),
         memorySize: 1024,
@@ -22,7 +22,7 @@ export const createFunctions = (scope: Construct) => (table: Table) => {
 
     const chargeChecker = new Function(scope, 'ChargeChecker', {
         handler,
-        code: Code.fromAsset('../check_charger_build.zip'),
+        code: Code.fromAsset('../check_charger.zip'),
         runtime: Runtime.PROVIDED_AL2,
         timeout: Duration.seconds(60),
         memorySize: 1024,
