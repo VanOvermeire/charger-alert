@@ -35,10 +35,10 @@ jobs:
         include:
           - build-type: adder
             build-bin-name: add_alert
-            build-artifact-name: ${{ ADD_ALERT_ARTIFACT_NAME }}
+            build-artifact-name: ${{ env.ADD_ALERT_ARTIFACT_NAME }}
           - build-type: checker
             build-bin-name: check_charger
-            build-artifact-name: ${{ CHECK_CHARGER_ARTIFACT_NAME }}
+            build-artifact-name: ${{ env.CHECK_CHARGER_ARTIFACT_NAME }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
