@@ -11,10 +11,7 @@ async fn main() -> Result<(), Error> {
 }
 
 
-async fn flow(event: LambdaEvent<Value>) -> Result<Value, Error> {
-    // let (event, _context) = event.into_parts();
-    // let first_name = event["firstName"].as_str().unwrap_or("world");
-
+async fn flow(_: LambdaEvent<Value>) -> Result<Value, Error> {
     // test
     let client = reqwest::blocking::Client::new();
     let data = "departure%5Blat%5D=50.844837&departure%5Blng%5D=4.39695&NELat=50.84691587&NELng=4.4037956&SWLat=50.84283428&SWLng=4.39634442";
