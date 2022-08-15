@@ -1,11 +1,9 @@
 use std::env::VarError;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use aws_sdk_dynamodb::SdkError;
 use lambda_http::ext::PayloadError;
 use lambda_http::{Response};
-
-// all adapter errors //
+use crate::adapters::{bad_request_response, internal_server_error_response};
 
 #[derive(Debug)]
 pub enum AdapterError {
@@ -35,20 +33,14 @@ impl From<PayloadError> for AdapterError {
     }
 }
 
-impl<E> From<SdkError<E>> for AdapterError {
-    fn from(_: SdkError<E>) -> Self {
-        AdapterError::DatabaseError
-    }
-}
-
 impl Error for AdapterError {}
 
 impl AdapterError {
-    pub fn to_response(&self) -> lambda_http::http::Result<Response<&'static str>> {
+    pub fn to_response(&self) -> lambda_http::http::Result<Response<String>> {
         match self {
-            AdapterError::InputError => Response::builder().status(400).body("Invalid input"),
-            AdapterError::ConfigError => Response::builder().status(500).body("Internal server error"),
-            AdapterError::DatabaseError => Response::builder().status(500).body("Internal server error"),
+            AdapterError::InputError => bad_request_response("Invalid input"),
+            AdapterError::ConfigError => internal_server_error_response(),
+            AdapterError::DatabaseError => internal_server_error_response(),
         }
     }
 }

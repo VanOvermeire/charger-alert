@@ -6,12 +6,12 @@ use serde::{Deserialize};
 const REGION_KEY: &'static str = "REGION";
 const TABLE_KEY: &'static str = "TABLE";
 
-#[derive(Debug)]
-pub struct Region(String);
-#[derive(Debug)]
-pub struct Table(String);
+#[derive(Debug, Clone)]
+pub struct Region(pub String); // TODO instead provide a 'into'?
+#[derive(Debug, Clone)]
+pub struct Table(pub String);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     table: Table,
     region: Region,
@@ -38,9 +38,9 @@ impl Config {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Lat(f32);
+pub struct Lat(pub f32);
 #[derive(Deserialize, Debug)]
-pub struct Lon(f32);
+pub struct Lon(pub f32);
 
 #[derive(Deserialize, Debug)]
 pub struct ChargerRequest {
@@ -63,6 +63,7 @@ impl TryInto<ChargerRequest> for Request {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use lambda_http::Body;
     use lambda_http::http::header::CONTENT_TYPE;

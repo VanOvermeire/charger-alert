@@ -1,72 +1,57 @@
-// use aws_config::meta::region::RegionProviderChain;
-// use aws_sdk_dynamodb::model::AttributeValue;
-
-// async fn list_items(client: &Client) -> Result<(), Error> {
-//     let resp = client.get_item()
-//         .table_name(String::from("BillBackend-MainTable74195DAB-CEZ7U9Y4LZK0"))
-//         .key("pk", AttributeValue::S(String::from("I#user123#1635601020000")))
-//         .key("sk", AttributeValue::S(String::from("N#0000")))
-//         .send().await?;
-//
-//     if let Some(item) = resp.item {
-//         println!("   {:?}", item);
-//     }
-//
-//     Ok(())
-// }
-//
-// #[derive(Debug, Serialize)]
-// struct SuccessResponse {
-//     // pub body: String,
-// }
-//
-// #[derive(Debug, Serialize)]
-// struct FailureResponse {
-//     // pub body: String,
-// }
-// type Response = Result<SuccessResponse, FailureResponse>;
-//
-// #[tokio::main]
-// async fn main() -> Result<(), lambda_runtime::Error> {
-//     let region_provider = RegionProviderChain::first_try(Region::new(options.region)).or_default_provider();
-//     let shared_config = aws_config::from_env().region(region_provider).load().await;
-//     let client = Client::new(&shared_config);
-//     let arc_client = Arc::new(client);
-//
 //     lambda_runtime::run(handler_fn(move |_: Request, _ctx: Context| {
 //         handler(arc_client.clone())
 //     })).await?;
-//
-//     Ok(())
-// }
 
 mod adapters;
 
 use std::sync::Arc;
-use lambda_http::{IntoResponse, Request, RequestExt, service_fn};
-use crate::adapters::{ChargerRequest, Config};
+use aws_config::meta::region::RegionProviderChain;
+use aws_sdk_dynamodb::{Client, Region};
+use std::convert::TryInto;
+use lambda_http::{Body, IntoResponse, Request, RequestExt, Response, service_fn};
+use crate::adapters::{ChargerRequest, Config, Database, DynamoDB, success_response, Table};
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
-    let config_result = Config::new()?;
-    let arc_config_result = Arc::new(config_result);
+    // setup
+    let lambda_config =
+        Arc::new(
+        Config::new().expect("Config to be available")
+    );
+    let cloned_config = lambda_config.clone();
+
+    let region_provider = RegionProviderChain::first_try(Region::new(cloned_config.as_ref().get_region().0.clone())).or_default_provider();
+    let shared_config = aws_config::from_env().region(region_provider).load().await;
+    let arc_db_client = Arc::new(
+        DynamoDB::new(Client::new(&shared_config))
+    );
 
     lambda_http::run(service_fn(move |r: Request| {
-        fun(r, arc_config_result.clone())
+        fun(r, lambda_config.clone(), arc_db_client.clone())
     })).await?;
 
     Ok(())
 }
 
-async fn fun(request: Request, config_result: Arc<Config>) -> Result<impl IntoResponse, std::convert::Infallible> {
-    let charger_request: ChargerRequest = request.try_into().expect("try_into to succeed"); // TODO later no expects - and_then?
-    println!("Config is {:?}", config_result.as_ref());
-    println!("Transformed request {:?}", charger_request);
+// TODO use Database trait instead of dynamodb?
+async fn fun(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
+    flow(request, config, arc_client).await
+    // Ok(format!(
+    //     "hello stranger",
+    // ))
+}
 
-    // pass the given info to the database
-    // return a response
-
-    Ok(format!(
-        "hello stranger",
-    ))
+async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
+    match  <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
+        Ok(req) => {
+            let lat_and_lon = req.get_lat_and_long();
+            match arc_client.as_ref().add_lat_and_lon(config.as_ref().get_table().0.as_ref(), lat_and_lon.0, lat_and_lon.1).await {
+                Ok(_) => success_response(),
+                Err(e) => e.to_response(),
+            }
+        },
+        Err(e) => {
+            return e.to_response()
+        }
+    }
 }
