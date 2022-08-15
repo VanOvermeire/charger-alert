@@ -9,7 +9,6 @@ dependencies = [
  "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
- "common",
  "lambda_http",
  "lambda_runtime",
  "regex",
