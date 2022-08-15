@@ -77,6 +77,16 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: add_alert_build
+      - name: Download check charger
+        uses: actions/download-artifact@v3
+        with:
+          name: check_charger_build
+      - name: temp
+        run: ls -al
+      - name: temp2
+        run: ls charger-alert
+      - name: temp2
+        run: ls charger-alert/charger-alert
       - name: Deploy to AWS
         uses: youyo/aws-cdk-github-actions@v2
         with:
