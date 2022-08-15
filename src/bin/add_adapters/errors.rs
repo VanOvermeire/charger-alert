@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use lambda_http::ext::PayloadError;
 use lambda_http::{Response};
-use crate::adapters::{bad_request_response, internal_server_error_response};
+use crate::add_adapters::{bad_request_response, internal_server_error_response};
 
 #[derive(Debug)]
 pub enum AdapterError {

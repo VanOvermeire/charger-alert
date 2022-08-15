@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
-use crate::adapters::{AdapterError, Lat, Lon};
+use crate::add_adapters::{AdapterError, Lat, Lon};
 
 #[async_trait]
 pub trait Database {

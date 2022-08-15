@@ -1,5 +1,5 @@
 use std::env;
-use crate::adapters::AdapterError;
+use crate::add_adapters::AdapterError;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
 
