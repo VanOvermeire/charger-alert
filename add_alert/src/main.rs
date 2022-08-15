@@ -17,14 +17,10 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     let db_client = build_db_client(lambda_config.clone().as_ref().get_region()).await;
 
     lambda_http::run(service_fn(move |r: Request| {
-        fun(r, lambda_config.clone(), db_client.clone())
+        flow(r, lambda_config.clone(), db_client.clone())
     })).await?;
 
     Ok(())
-}
-
-async fn fun(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
-    flow(request, config, arc_client).await
 }
 
 async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {

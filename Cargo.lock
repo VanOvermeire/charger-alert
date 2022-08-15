@@ -426,7 +426,6 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
- "lambda_http",
  "lambda_runtime",
  "openssl",
  "reqwest",

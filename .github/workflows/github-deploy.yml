@@ -5,8 +5,6 @@ on:
     branches:
       - master
 
-# Rust build downloads a docker image - could cache that as well?
-
 env:
   PROJECT_NAME: charger_alert
   AWS_REGION: eu-west-1
@@ -46,12 +44,7 @@ jobs:
             set -ex
             sudo apt-get update
             sudo apt-get install -y musl-tools
-            sudo apt-get install libssl-dev
-            sudo apt-get install pkg-config
-            sudo apt-get install librust-openssl-dev
-            pip3 install ziglang
             rustup target add x86_64-unknown-linux-musl
-            cargo install cargo-zigbuild
 
       #      - name: setup Rust and the correct target
       #        uses: actions-rs/toolchain@v1
@@ -66,8 +59,8 @@ jobs:
           path: |
             ./target/release
       - name: Build Rust release
-#        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
-        run: cargo zigbuild --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
+        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
+#        run: cargo zigbuild --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
 #      - name: Build Rust release
 #        uses: actions-rs/cargo@v1
 #        with:
