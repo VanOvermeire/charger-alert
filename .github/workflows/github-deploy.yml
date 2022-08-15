@@ -53,8 +53,8 @@ jobs:
           key: ${{ env.PROJECT_NAME }}-build-cache
           path: |
             ./target/release
-      - name: temp?
-        run: apt-get install libssl-dev
+#      - name: temp?
+#        run: apt-get install libssl-dev
       - name: Build Rust release
         uses: actions-rs/cargo@v1
         with:
