@@ -41,10 +41,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Setup musl-tools
+      - name: Setup tools
         run: |
             set -ex
             sudo apt-get update
+            sudo apt-get install libssl-dev
             sudo apt-get install -y musl-tools
             rustup target add x86_64-unknown-linux-musl
 #      - name: setup Rust and the correct target
@@ -60,7 +61,7 @@ jobs:
           path: |
             ./target/release
       - name: Build Rust release
-        run: PKG_CONFIG_SYSROOT_DIR=/ cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
+        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
 #      - name: Build Rust release
 #        uses: actions-rs/cargo@v1
 #        with:
