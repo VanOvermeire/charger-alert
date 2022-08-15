@@ -59,18 +59,11 @@ jobs:
           args: --release --target x86_64-unknown-linux-musl
       - name: Zip ${{ matrix.build-type }} release
         run: mv ./target/x86_64-unknown-linux-musl/release/${{ matrix.build-bin-name }} ./bootstrap && zip -j ${{ matrix.build-bin-name }}.zip ./bootstrap
-#      - name: Zip add alert release
-#        run: mv ./target/x86_64-unknown-linux-musl/release/${{ env.ADD_ALERT_PROJECT }} ./bootstrap && zip -j ${{ env.ADD_ALERT_PROJECT }}.zip ./bootstrap
       - name: Upload ${{ matrix.build-type }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.build-bin-name }}_build
           path: ./${{ matrix.build-bin-name }}.zip
-#      - name: Upload check charger
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: ${{ env.CHECK_CHARGER_ARTIFACT_NAME }}
-#          path: ./${{ env.CHECK_CHARGER }}.zip
 
   deploy:
     needs:

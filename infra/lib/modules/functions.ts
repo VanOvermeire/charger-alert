@@ -6,7 +6,7 @@ import {Table} from "aws-cdk-lib/aws-dynamodb";
 
 export const createFunctions = (scope: Construct) => (table: Table) => {
     const chargerAlert = new Function(scope, 'ChargerAlert', {
-        code: Code.fromAsset('../charger-alert.zip'),
+        code: Code.fromAsset('../add_alert_build.zip'),
         runtime: Runtime.PROVIDED_AL2,
         handler: 'some.handler',
         timeout: Duration.seconds(30),
