@@ -11,11 +11,26 @@ const getTemplate = (): Template => {
 };
 
 describe('Charger infrastructure', () => {
-    it('should create a Lambda with a custom runtime', () => {
+    it('should create a Lambda with a custom runtime and permission to write to dynamo', () => {
         const template = getTemplate();
 
         template.hasResourceProperties('AWS::Lambda::Function', {
             Runtime: "provided.al2"
+        });
+        template.hasResourceProperties('AWS::IAM::Policy', {
+            PolicyDocument: {
+                Statement: [
+                    {
+                        Action: [
+                            "dynamodb:BatchWriteItem",
+                            "dynamodb:PutItem",
+                            "dynamodb:UpdateItem",
+                            "dynamodb:DeleteItem",
+                            "dynamodb:DescribeTable"
+                        ]
+                    }
+                ]
+            }
         });
     });
 
