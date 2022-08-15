@@ -60,7 +60,7 @@ jobs:
           path: |
             ./target/release
       - name: Build Rust release
-        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
+        run: PKG_CONFIG_SYSROOT_DIR=/ cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
 #      - name: Build Rust release
 #        uses: actions-rs/cargo@v1
 #        with:
