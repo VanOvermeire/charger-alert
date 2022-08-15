@@ -5,6 +5,8 @@ on:
     branches:
       - master
 
+# Rust build downloads a docker image - could cache that as well?
+
 env:
   PROJECT_NAME: charger_alert
   AWS_REGION: eu-west-1
@@ -56,7 +58,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release --target x86_64-unknown-linux-musl
+          args: --release --target x86_64-unknown-linux-musl # TODO use -p to build specific target (might fail because overwrite? not sure)
       - name: Zip ${{ matrix.build-type }} release
         run: mv ./target/x86_64-unknown-linux-musl/release/${{ matrix.build-bin-name }} ./bootstrap && zip -j ${{ matrix.build-bin-name }}.zip ./bootstrap
       - name: Upload ${{ matrix.build-type }}

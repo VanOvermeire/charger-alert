@@ -1,11 +1,11 @@
-mod add_adapters;
+mod adapters;
 
 use std::sync::Arc;
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_dynamodb::{Client, Region};
 use std::convert::TryInto;
 use lambda_http::{Body, Request, Response, service_fn};
-use crate::add_adapters::{ChargerRequest, Config, Database, DynamoDB, success_response};
+use crate::adapters::{ChargerRequest, Config, Database, DynamoDB, success_response};
 
 // TODO use Database trait instead of dynamodb?
 
@@ -42,7 +42,7 @@ async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) 
     }
 }
 
-async fn build_db_client(region: &add_adapters::Region) -> Arc<DynamoDB> {
+async fn build_db_client(region: &adapters::Region) -> Arc<DynamoDB> {
     let region_provider = RegionProviderChain::first_try(Region::new(region.0.clone())).or_default_provider();
     let shared_config = aws_config::from_env().region(region_provider).load().await;
     Arc::new(DynamoDB::new(Client::new(&shared_config)))

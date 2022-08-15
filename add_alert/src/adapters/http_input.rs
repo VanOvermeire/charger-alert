@@ -1,7 +1,7 @@
 use std::env;
-use crate::add_adapters::AdapterError;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
+use crate::adapters::AdapterError;
 
 const REGION_KEY: &'static str = "REGION";
 const TABLE_KEY: &'static str = "TABLE";
