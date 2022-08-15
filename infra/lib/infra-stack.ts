@@ -9,7 +9,7 @@ export class InfraStack extends Stack {
     super(scope, id, props);
 
     const table = createDatabase(this);
-    const { chargerAlert } = createFunctions(this)(table.tableName);
+    const { chargerAlert } = createFunctions(this)(table);
     const httpApi = createHttpApi(this)(chargerAlert);
   }
 }

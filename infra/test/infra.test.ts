@@ -2,6 +2,14 @@ import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import * as Infra from '../lib/infra-stack';
 
+const getTemplate = (): Template => {
+    const app = new cdk.App();
+
+    const stack = new Infra.InfraStack(app, 'TestStack');
+
+    return Template.fromStack(stack);
+};
+
 describe('Charger infrastructure', () => {
     it('should create a Lambda with a custom runtime', () => {
         const template = getTemplate();
@@ -29,11 +37,3 @@ describe('Charger infrastructure', () => {
         template.hasResourceProperties('AWS::DynamoDB::Table', {});
     });
 });
-
-const getTemplate = (): Template => {
-    const app = new cdk.App();
-
-    const stack = new Infra.InfraStack(app, 'TestStack');
-
-    return Template.fromStack(stack);
-};

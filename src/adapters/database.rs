@@ -34,7 +34,10 @@ impl Database for DynamoDB {
             .send()
             .await {
             Ok(_) => Ok(()),
-            Err(e) => Err(AdapterError::DatabaseError),
+            Err(e) => {
+                println!("Error from database: {:?}", e);
+                Err(AdapterError::DatabaseError)
+            },
         }
     }
 }
