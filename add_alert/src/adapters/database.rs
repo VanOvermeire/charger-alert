@@ -2,6 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
+use common::{DB_ID_NAME, DB_NORTH_EAST_LATITUDE_NAME, DB_NORTH_EAST_LONGITUDE_NAME};
 use crate::adapters::{AdapterError, Lat, Lon};
 
 #[async_trait]
@@ -28,9 +29,9 @@ impl Database for DynamoDB {
 
         match &self.client.put_item()
             .table_name(table)
-            .item("id", AttributeValue::S(id))
-            .item("longitude", AttributeValue::N(lon.0.to_string()))
-            .item("latitude", AttributeValue::N(lat.0.to_string()))
+            .item(DB_ID_NAME, AttributeValue::S(id))
+            .item(lon.get_name(), lon.into())
+            .item(lat.get_name(), lat.into())
             .send()
             .await {
             Ok(_) => Ok(()),

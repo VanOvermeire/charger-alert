@@ -9,6 +9,14 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn flow(_: LambdaEvent<Value>) -> Result<Value, Error> {
+    // TODO
+    //  - for every row in our database
+    //  - retrieve the NE and SW lat and lon
+    //  - if we find any matches with free connectors
+    //  - then send an SES message (configure env vars for this)
+    //  - and delete the entry
+    // (if not we will try again later)
+
     // test
     let client = reqwest::blocking::Client::new();
     let data = "departure%5Blat%5D=50.844837&departure%5Blng%5D=4.39695&NELat=50.84691587&NELng=4.4037956&SWLat=50.84283428&SWLng=4.39634442";

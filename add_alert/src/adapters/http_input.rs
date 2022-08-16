@@ -1,6 +1,8 @@
 use std::env;
+use aws_sdk_dynamodb::model::AttributeValue;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
+use common::DB_NORTH_EAST_LATITUDE_NAME;
 use crate::adapters::AdapterError;
 
 const REGION_KEY: &'static str = "REGION";
@@ -41,6 +43,31 @@ impl Config {
 pub struct Lat(pub f32);
 #[derive(Deserialize, Debug)]
 pub struct Lon(pub f32);
+
+macro_rules! generate_name_for_coordinate {
+    ($coordinate_type:ty,$name:literal) => {
+        impl $coordinate_type {
+            pub fn get_name(&self) -> &'static str {
+                $name
+            }
+        }
+    };
+}
+
+macro_rules! generate_from_for_coordinate {
+    ($coordinate_type:ty) => {
+        impl From<&$coordinate_type> for AttributeValue {
+            fn from(l: &$coordinate_type) -> Self {
+                AttributeValue::N(l.0.to_string())
+            }
+        }
+    };
+}
+
+generate_name_for_coordinate!(Lat, "nelat"); // can't take constants unfortunately
+generate_name_for_coordinate!(Lon, "nelon");
+generate_from_for_coordinate!(Lat);
+generate_from_for_coordinate!(Lon);
 
 #[derive(Deserialize, Debug)]
 pub struct ChargerRequest {
