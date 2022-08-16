@@ -2,71 +2,8 @@ use std::env;
 use aws_sdk_dynamodb::model::AttributeValue;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
+use common::{Lat, Lon};
 use crate::adapters::AdapterError;
-
-const REGION_KEY: &'static str = "REGION";
-const TABLE_KEY: &'static str = "TABLE";
-
-#[derive(Debug, Clone)]
-pub struct Region(pub String); // TODO instead provide a 'into'?
-#[derive(Debug, Clone)]
-pub struct Table(pub String);
-
-#[derive(Debug, Clone)]
-pub struct Config {
-    table: Table,
-    region: Region,
-}
-
-impl Config {
-    pub fn new() -> Result<Config, AdapterError> {
-        let region = env::var(REGION_KEY)?;
-        let table = env::var(TABLE_KEY)?;
-
-        Ok(Config {
-            table: Table(table),
-            region: Region(region),
-        })
-    }
-
-    pub fn get_table(&self) -> &Table {
-        &self.table
-    }
-
-    pub fn get_region(&self) -> &Region {
-        &self.region
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Lat(pub f32);
-#[derive(Deserialize, Debug)]
-pub struct Lon(pub f32);
-
-macro_rules! generate_name_for_coordinate {
-    ($coordinate_type:ty,$name:literal) => {
-        impl $coordinate_type {
-            pub fn get_name(&self) -> &'static str {
-                $name
-            }
-        }
-    };
-}
-
-macro_rules! generate_from_for_coordinate {
-    ($coordinate_type:ty) => {
-        impl From<&$coordinate_type> for AttributeValue {
-            fn from(l: &$coordinate_type) -> Self {
-                AttributeValue::N(l.0.to_string())
-            }
-        }
-    };
-}
-
-generate_name_for_coordinate!(Lat, "nelat"); // can't take constants unfortunately
-generate_name_for_coordinate!(Lon, "nelon");
-generate_from_for_coordinate!(Lat);
-generate_from_for_coordinate!(Lon);
 
 #[derive(Deserialize, Debug)]
 pub struct ChargerRequest {

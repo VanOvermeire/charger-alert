@@ -2,8 +2,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
-use common::{DB_ID_NAME};
-use crate::adapters::{AdapterError, Lat, Lon};
+use common::{DB_ID_NAME, Lat, Lon};
+use crate::adapters::AdapterError;
 
 #[async_trait]
 pub trait Database {
@@ -44,10 +44,11 @@ impl Database for DynamoDB {
 }
 
 fn generate_id() -> String {
-    let since_the_epoch = SystemTime::now()
+    SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-    since_the_epoch.as_millis().to_string()
+        .expect("Time went backwards")
+        .as_millis()
+        .to_string()
 }
 
 #[cfg(test)]
