@@ -5,11 +5,8 @@ use serde_json::{json, Value};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    lambda_runtime::run(service_fn(flow)).await?;
-
-    Ok(())
+    lambda_runtime::run(service_fn(flow)).await
 }
-
 
 async fn flow(_: LambdaEvent<Value>) -> Result<Value, Error> {
     // test

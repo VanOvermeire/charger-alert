@@ -18,9 +18,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 
     lambda_http::run(service_fn(move |r: Request| {
         flow(r, lambda_config.clone(), db_client.clone())
-    })).await?;
-
-    Ok(())
+    })).await
 }
 
 async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
