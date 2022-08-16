@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
-use common::{DB_ID_NAME, DB_NORTH_EAST_LATITUDE_NAME, DB_NORTH_EAST_LONGITUDE_NAME};
+use common::{DB_ID_NAME};
 use crate::adapters::{AdapterError, Lat, Lon};
 
 #[async_trait]

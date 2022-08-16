@@ -2,7 +2,6 @@ use std::env;
 use aws_sdk_dynamodb::model::AttributeValue;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
-use common::DB_NORTH_EAST_LATITUDE_NAME;
 use crate::adapters::AdapterError;
 
 const REGION_KEY: &'static str = "REGION";
