@@ -6,9 +6,9 @@ use aws_sdk_dynamodb::model::AttributeValue;
 pub const DB_ID_NAME: &'static str = "id";
 
 #[derive(Deserialize, Debug)]
-pub struct Lat(pub f32);
+pub struct NorthEastLatitude(pub f32);
 #[derive(Deserialize, Debug)]
-pub struct Lon(pub f32);
+pub struct NorthEastLongitude(pub f32);
 #[derive(Deserialize, Debug)]
 pub struct SouthWestLatitude(pub f32);
 #[derive(Deserialize, Debug)]
@@ -42,8 +42,8 @@ macro_rules! generate_methods_for_coordinate {
 }
 
 // can't take constants, so passed in as str
-generate_methods_for_coordinate!(Lat, "nelat");
-generate_methods_for_coordinate!(Lon, "nelon");
+generate_methods_for_coordinate!(NorthEastLatitude, "nelat");
+generate_methods_for_coordinate!(NorthEastLongitude, "nelon");
 generate_methods_for_coordinate!(SouthWestLatitude, "swlat");
 generate_methods_for_coordinate!(SouthWestLongitude, "swlon");
 

@@ -2,12 +2,16 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
-use common::{DB_ID_NAME, Lat, Lon};
+use common::{DB_ID_NAME, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 use crate::adapters::AdapterError;
 
 #[async_trait]
 pub trait Database {
-    async fn add_lat_and_lon(&self, table: &str, lat: &Lat, lon: &Lon) -> Result<(), AdapterError>;
+    async fn add_lat_and_lon(&self, table: &str,
+                             lat: &NorthEastLatitude,
+                             lon: &NorthEastLongitude,
+                             sw_lat: &SouthWestLatitude,
+                             sw_lon: &SouthWestLongitude) -> Result<(), AdapterError>;
 }
 
 pub struct DynamoDB {
@@ -24,21 +28,28 @@ impl DynamoDB {
 
 #[async_trait]
 impl Database for DynamoDB {
-    async fn add_lat_and_lon(&self, table: &str, lat: &Lat, lon: &Lon) -> Result<(), AdapterError> {
+    async fn add_lat_and_lon(&self,
+                             table: &str,
+                             ne_lat: &NorthEastLatitude,
+                             ne_lon: &NorthEastLongitude,
+                             sw_lat: &SouthWestLatitude,
+                             sw_lon: &SouthWestLongitude) -> Result<(), AdapterError> {
         let id = generate_id();
 
         match &self.client.put_item()
             .table_name(table)
             .item(DB_ID_NAME, AttributeValue::S(id))
-            .item(lon.get_name(), lon.into())
-            .item(lat.get_name(), lat.into())
+            .item(ne_lon.get_name(), ne_lon.into())
+            .item(ne_lat.get_name(), ne_lat.into())
+            .item(sw_lat.get_name(), sw_lat.into())
+            .item(sw_lon.get_name(), sw_lon.into())
             .send()
             .await {
             Ok(_) => Ok(()),
             Err(e) => {
                 println!("Error from database: {:?}", e);
                 Err(AdapterError::DatabaseError)
-            },
+            }
         }
     }
 }

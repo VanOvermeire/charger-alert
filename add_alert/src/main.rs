@@ -26,8 +26,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 async fn flow(request: Request, config: Arc<Config>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
-            let lat_and_lon = req.get_lat_and_long();
-            match arc_client.as_ref().add_lat_and_lon(config.as_ref().get_table().0.as_ref(), lat_and_lon.0, lat_and_lon.1).await {
+            match arc_client.as_ref().add_lat_and_lon(config.as_ref().get_table().0.as_ref(), &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
                 Ok(_) => success_response(),
                 Err(e) => e.to_http_response(),
             }

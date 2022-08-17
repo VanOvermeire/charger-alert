@@ -2,19 +2,15 @@ use std::env;
 use aws_sdk_dynamodb::model::AttributeValue;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
-use common::{Lat, Lon};
+use common::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 use crate::adapters::AdapterError;
 
 #[derive(Deserialize, Debug)]
 pub struct ChargerRequest {
-    lat: Lat,
-    lon: Lon,
-}
-
-impl ChargerRequest {
-    pub fn get_lat_and_long(&self) -> (&Lat, &Lon) {
-        (&self.lat, &self.lon)
-    }
+    pub ne_lat: NorthEastLatitude,
+    pub ne_lon: NorthEastLongitude,
+    pub sw_lat: SouthWestLatitude,
+    pub sw_lon: SouthWestLongitude,
 }
 
 impl TryInto<ChargerRequest> for Request {
@@ -34,15 +30,18 @@ mod tests {
 
     #[test]
     fn should_turn_a_http_request_into_a_charger_request() {
-        let body_string = r#"{ "lat": 2.3, "lon": 1.5 }"#;
+        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8 }"#;
         let mut request = Request::new(Body::Text(body_string.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
 
         let result: ChargerRequest = request.try_into().expect("try_into to succeed for request");
 
-        assert_eq!(result.get_lat_and_long().0.0, 2.3);
-        assert_eq!(result.get_lat_and_long().1.0, 1.5);
+
+        assert_eq!(result.ne_lat.0, 2.3);
+        assert_eq!(result.ne_lon.0, 1.5);
+        assert_eq!(result.sw_lat.0, 55.0);
+        assert_eq!(result.sw_lon.0, 12.8);
     }
 
     #[test]
