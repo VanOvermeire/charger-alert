@@ -14,9 +14,11 @@ jobs:
   smokeTest:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
       - run: ls -al ..
-#      - run: ls -al
-#        working-directory: .github
+      - run: ls -al
+        working-directory: .github
       - name: Run smoke test (POST call)
         run: ./smoke_test.sh
         working-directory: .github
