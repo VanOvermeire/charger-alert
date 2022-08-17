@@ -9,9 +9,89 @@ env:
   PROJECT_NAME: charger_alert
   AWS_REGION: eu-west-1
 
-# TODO move smoke test to after
 jobs:
+  test:
+    strategy:
+      matrix:
+        test-type: [ charger, cdk ]
+        include:
+          - test-type: charger
+            test-command: cargo test
+          - test-type: cdk
+            test-command: zip add_alert.zip LICENSE && zip check_charger.zip LICENSE && cd infra && npm i && npm test # fake zips as 'code' for the Lambda
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Test ${{ matrix.test-type }}
+        run: ${{ matrix.test-command }}
+
+  build:
+    strategy:
+      matrix:
+        build-type: [ adder, checker ]
+        include:
+          - build-type: adder
+            build-bin-name: add_alert
+          - build-type: checker
+            build-bin-name: check_charger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Setup tools
+        run: |
+            set -ex
+            sudo apt-get update
+            sudo apt-get install -y musl-tools
+            rustup target add x86_64-unknown-linux-musl
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.build-type }}-build-cache
+          path: |
+            ./target/release
+      - name: Build Rust release
+        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
+      - name: Zip ${{ matrix.build-type }} release
+        run: mv ./target/x86_64-unknown-linux-musl/release/${{ matrix.build-bin-name }} ./bootstrap && zip -j ${{ matrix.build-bin-name }}.zip ./bootstrap
+      - name: Upload ${{ matrix.build-type }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.build-bin-name }}_build
+          path: ./${{ matrix.build-bin-name }}.zip
+
+  deploy:
+    needs:
+      - test
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Download add alert
+        uses: actions/download-artifact@v3
+        with:
+          name: add_alert_build
+      - name: Download check charger
+        uses: actions/download-artifact@v3
+        with:
+          name: check_charger_build
+      - name: Deploy to AWS
+        uses: youyo/aws-cdk-github-actions@v2
+        with:
+          working_dir: infra
+          cdk_subcommand: deploy
+          cdk_args: --require-approval never
+          actions_comment: false
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+
   smokeTest:
+    needs:
+      - deploy
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -23,82 +103,3 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
-
-#  test:
-#    strategy:
-#      matrix:
-#        test-type: [ charger, cdk ]
-#        include:
-#          - test-type: charger
-#            test-command: cargo test
-#          - test-type: cdk
-#            test-command: zip add_alert.zip LICENSE && zip check_charger.zip LICENSE && cd infra && npm i && npm test # fake zips as 'code' for the Lambda
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Check out repository code
-#        uses: actions/checkout@v3
-#      - name: Test ${{ matrix.test-type }}
-#        run: ${{ matrix.test-command }}
-#
-#  build:
-#    strategy:
-#      matrix:
-#        build-type: [ adder, checker ]
-#        include:
-#          - build-type: adder
-#            build-bin-name: add_alert
-#          - build-type: checker
-#            build-bin-name: check_charger
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Check out repository code
-#        uses: actions/checkout@v3
-#      - name: Setup tools
-#        run: |
-#            set -ex
-#            sudo apt-get update
-#            sudo apt-get install -y musl-tools
-#            rustup target add x86_64-unknown-linux-musl
-#      - name: Cache Rust dependencies
-#        uses: actions/cache@v3
-#        with:
-#          key: ${{ matrix.build-type }}-build-cache
-#          path: |
-#            ./target/release
-#      - name: Build Rust release
-#        run: cargo build --release --target x86_64-unknown-linux-musl -p ${{ matrix.build-bin-name }}
-#      - name: Zip ${{ matrix.build-type }} release
-#        run: mv ./target/x86_64-unknown-linux-musl/release/${{ matrix.build-bin-name }} ./bootstrap && zip -j ${{ matrix.build-bin-name }}.zip ./bootstrap
-#      - name: Upload ${{ matrix.build-type }}
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: ${{ matrix.build-bin-name }}_build
-#          path: ./${{ matrix.build-bin-name }}.zip
-#
-#  deploy:
-#    needs:
-#      - test
-#      - build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout source code
-#        uses: actions/checkout@v3
-#      - name: Download add alert
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: add_alert_build
-#      - name: Download check charger
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: check_charger_build
-#      - name: Deploy to AWS
-#        uses: youyo/aws-cdk-github-actions@v2
-#        with:
-#          working_dir: infra
-#          cdk_subcommand: deploy
-#          cdk_args: --require-approval never
-#          actions_comment: false
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}

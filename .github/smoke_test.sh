@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO could maybe immediately afterwards clean up the data inserted?
+
 echo "Running smoke test by doing a POST to /alert"
 
 base_url=$(aws cloudformation describe-stacks --stack-name ChargerStack --query 'Stacks[0].Outputs[0].OutputValue' --output text)
