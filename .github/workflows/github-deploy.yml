@@ -9,7 +9,14 @@ env:
   PROJECT_NAME: charger_alert
   AWS_REGION: eu-west-1
 
+# TODO move smoke test to after
 jobs:
+  smokeTest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run smoke test (POST call)
+        run: ./.github/smoke_test.sh
+
   test:
     strategy:
       matrix:
