@@ -8,6 +8,7 @@ pub struct DynamoDB {
 
 impl DynamoDB {
     pub fn new(client: Client) -> Self {
+        // maybe this could also handle the config part?
         DynamoDB {
             client,
         }
