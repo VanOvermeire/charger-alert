@@ -1,5 +1,3 @@
-use std::env;
-use aws_sdk_dynamodb::model::AttributeValue;
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
 use common::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};

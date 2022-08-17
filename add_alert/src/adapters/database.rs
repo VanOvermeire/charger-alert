@@ -1,42 +1,25 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
-use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::model::AttributeValue;
-use common::{DB_ID_NAME, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+use common::{DB_ID_NAME, DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 use crate::adapters::AdapterError;
 
 #[async_trait]
-pub trait Database {
-    async fn add_lat_and_lon(&self, table: &str,
-                             lat: &NorthEastLatitude,
-                             lon: &NorthEastLongitude,
-                             sw_lat: &SouthWestLatitude,
-                             sw_lon: &SouthWestLongitude) -> Result<(), AdapterError>;
-}
-
-pub struct DynamoDB {
-    client: Client,
-}
-
-impl DynamoDB {
-    pub fn new(client: Client) -> Self {
-        DynamoDB {
-            client,
-        }
-    }
+pub trait CoordinatesDb {
+    async fn add(&self, table: &str,
+                 lat: &NorthEastLatitude, lon: &NorthEastLongitude,
+                 sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError>;
 }
 
 #[async_trait]
-impl Database for DynamoDB {
-    async fn add_lat_and_lon(&self,
-                             table: &str,
-                             ne_lat: &NorthEastLatitude,
-                             ne_lon: &NorthEastLongitude,
-                             sw_lat: &SouthWestLatitude,
-                             sw_lon: &SouthWestLongitude) -> Result<(), AdapterError> {
+impl CoordinatesDb for DynamoDB {
+    async fn add(&self,
+                 table: &str,
+                 ne_lat: &NorthEastLatitude, ne_lon: &NorthEastLongitude,
+                 sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError> {
         let id = generate_id();
 
-        match &self.client.put_item()
+        match &self.get_client_ref().put_item()
             .table_name(table)
             .item(DB_ID_NAME, AttributeValue::S(id))
             .item(ne_lon.get_name(), ne_lon.into())
