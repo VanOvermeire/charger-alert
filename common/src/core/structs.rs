@@ -1,6 +1,11 @@
 use serde::{Deserialize};
 use aws_sdk_dynamodb::model::AttributeValue;
 
+pub trait Coordinate {
+    fn get_type_name() -> &'static str;
+    fn get_name(&self) -> &'static str;
+}
+
 #[derive(Deserialize, Debug)]
 pub struct NorthEastLatitude(pub f32);
 #[derive(Deserialize, Debug)]
@@ -14,12 +19,12 @@ pub struct SouthWestLongitude(pub f32);
 // could also use :ty, though ident has the advantage that it can also be used as, e.g., constructor
 macro_rules! generate_name_for_coordinate {
     ($coordinate_type:ident,$name:literal) => {
-        impl $coordinate_type {
-            pub fn get_type_name() -> &'static str {
+        impl Coordinate for $coordinate_type {
+            fn get_type_name() -> &'static str {
                 $name
             }
 
-            pub fn get_name(&self) -> &'static str {
+            fn get_name(&self) -> &'static str {
                 $name
             }
         }

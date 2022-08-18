@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use common::{DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+use common::{DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
 use serde_json::to_string;
@@ -20,15 +20,13 @@ pub struct ScanItem {
 // why not put all this into the core (like by implementing try_into for coordinates?) mostly because I don't want to further contaminate that part of the code
 // with stuff related to the db / attribute values / parsing / ...
 impl TryFrom<HashMap<String, AttributeValue>> for ScanItem {
-    type Error = AdapterError; // TODO
+    type Error = AdapterError;
 
-    // TODO more elegant?
-    // TODO make a trait for get_type_name to make sure I can't mistake name and constructor
     fn try_from(map: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        let ne_lat = from_map_to_coordinate(&map, NorthEastLatitude::get_type_name(), |v| NorthEastLatitude(v))?;
-        let ne_lon = from_map_to_coordinate(&map, NorthEastLongitude::get_type_name(), |v| NorthEastLongitude(v))?;
-        let sw_lat = from_map_to_coordinate(&map, SouthWestLatitude::get_type_name(), |v| SouthWestLatitude(v))?;
-        let sw_lon = from_map_to_coordinate(&map, SouthWestLongitude::get_type_name(), |v| SouthWestLongitude(v))?;
+        let ne_lat = from_map_to_coordinate(&map,|v| NorthEastLatitude(v))?;
+        let ne_lon = from_map_to_coordinate(&map,|v| NorthEastLongitude(v))?;
+        let sw_lat = from_map_to_coordinate(&map, |v| SouthWestLatitude(v))?;
+        let sw_lon = from_map_to_coordinate(&map, |v| SouthWestLongitude(v))?;
 
         Ok(ScanItem {
             ne_lat,
@@ -39,8 +37,9 @@ impl TryFrom<HashMap<String, AttributeValue>> for ScanItem {
     }
 }
 
-fn from_map_to_coordinate<T>(map: &HashMap<String, AttributeValue>, name: &str, constructor: fn(f32) -> T) -> Result<T, AdapterError> {
-    map.get(name)
+// originally passed in the name, but that left room for errors
+fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>, constructor: fn(f32) -> C) -> Result<C, AdapterError> {
+    map.get(C::get_type_name())
         .ok_or_else(|| AdapterError::ParseError)
         .and_then(|v| v.as_n().map_err(|_| AdapterError::ParseError))
         .and_then(|v| v.parse::<f32>().map(constructor).map_err(|_| AdapterError::ParseError))
