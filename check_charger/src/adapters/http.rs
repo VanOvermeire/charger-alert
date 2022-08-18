@@ -1,5 +1,6 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use common::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Results {
@@ -27,8 +28,12 @@ struct Connectors {
     available_count: i8,
 }
 
-// TODO lat and long for corners
-pub struct GetInput {}
+pub struct GetInput {
+    ne_lat: NorthEastLatitude,
+    ne_lon: NorthEastLongitude,
+    sw_lat: SouthWestLatitude,
+    sw_lon: SouthWestLongitude,
+}
 
 const BASE_URL: &str = "https://nl.chargemap.com/json/charging/pools/get_from_areas";
 
