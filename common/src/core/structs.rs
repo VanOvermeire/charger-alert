@@ -2,6 +2,7 @@ use serde::{Deserialize};
 use aws_sdk_dynamodb::model::AttributeValue;
 
 pub trait Coordinate {
+    fn new(val: f32) -> Self;
     fn get_type_name() -> &'static str;
     fn get_name(&self) -> &'static str;
 }
@@ -17,9 +18,13 @@ pub struct SouthWestLongitude(pub f32);
 
 // sometimes static is better, sometimes not
 // could also use :ty, though ident has the advantage that it can also be used as, e.g., constructor
-macro_rules! generate_name_for_coordinate {
+macro_rules! generate_trait_methods_for_coordinate {
     ($coordinate_type:ident,$name:literal) => {
         impl Coordinate for $coordinate_type {
+            fn new(val: f32) -> Self {
+                $coordinate_type(val)
+            }
+
             fn get_type_name() -> &'static str {
                 $name
             }
@@ -57,9 +62,8 @@ macro_rules! generate_from_for_coordinate {
 
 macro_rules! generate_methods_for_coordinate {
         ($coordinate:ident,$name:literal) => {
-            generate_name_for_coordinate!($coordinate, $name);
+            generate_trait_methods_for_coordinate!($coordinate, $name);
             generate_from_for_coordinate!($coordinate);
-            // generate_try_into_for_coordinate!($coordinate);
     };
 }
 
