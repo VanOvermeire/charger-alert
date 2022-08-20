@@ -1,5 +1,4 @@
 mod adapters;
-mod config;
 
 use std::sync::Arc;
 use aws_config::meta::region::RegionProviderChain;
@@ -7,8 +6,7 @@ use aws_sdk_dynamodb::{Client, Region};
 use std::convert::TryInto;
 use lambda_http::{Body, Request, Response, service_fn};
 use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
-use crate::config::ChargerLambdaConfig;
-use common::DynamoDB;
+use common::{build_db_client, ChargerLambdaConfig, DynamoDB};
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
@@ -22,8 +20,8 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     })).await
 }
 
-// use Database trait instead of dynamodb?
-async fn flow(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
+// TODO check dyn or alternative
+async fn flow(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<dyn CoordinatesDb>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
             match arc_client.as_ref().add(config.as_ref().get_table().0.as_ref(), &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
@@ -35,10 +33,4 @@ async fn flow(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Ar
             return e.to_http_response()
         }
     }
-}
-
-async fn build_db_client(region: &config::Region) -> Arc<DynamoDB> {
-    let region_provider = RegionProviderChain::first_try(Region::new(region.0.clone())).or_default_provider();
-    let shared_config = aws_config::from_env().region(region_provider).load().await;
-    Arc::new(DynamoDB::new(Client::new(&shared_config)))
 }
