@@ -1,9 +1,12 @@
+use crate::adapters::AdapterError;
+use std::fmt::format;
 use reqwest::Client;
+use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 use common::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Results {
+struct ChargerInfo {
     count: u32,
     items: Vec<Item>
 }
@@ -48,16 +51,16 @@ impl HttpClient {
         }
     }
 
-    fn get(&self) {
+    async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, AdapterError> {
+        let body = format!("NELat={}&NELng={}&SWLat={}&SWLng={}", ne_lat.0, ne_lon.0, sw_lat.0, sw_lon.0);
 
-
-        // let client = reqwest::blocking::Client::new();
-        // let data = "departure%5Blat%5D=50.844837&departure%5Blng%5D=4.39695&NELat=50.84691587&NELng=4.4037956&SWLat=50.84283428&SWLng=4.39634442";
-        // let res = client.post("https://nl.chargemap.com/json/charging/pools/get_from_areas")
-        // .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-        // .body(data)
-        // .send()?
-        // .json::<Results>()?
+        Ok(self.client.post(BASE_URL)
+            .body(body)
+            .header(CONTENT_TYPE, "application/x-www-form-urlencoded; charset=UTF-8")
+            .send()
+            .await?
+            .json::<ChargerInfo>()
+            .await?)
     }
 }
 
@@ -68,5 +71,3 @@ impl Default for HttpClient {
         }
     }
 }
-
-

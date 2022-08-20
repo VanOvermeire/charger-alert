@@ -10,8 +10,6 @@ use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
 use crate::config::ChargerLambdaConfig;
 use common::DynamoDB;
 
-// TODO use Database trait instead of dynamodb?
-
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
     let lambda_config = Arc::new(
@@ -24,6 +22,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     })).await
 }
 
+// use Database trait instead of dynamodb?
 async fn flow(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<DynamoDB>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {

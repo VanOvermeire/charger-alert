@@ -37,7 +37,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
 // did not work out
 fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>) -> Result<C, AdapterError> {
     map.get(C::get_type_name())
-        .ok_or_else(|| AdapterError::ParseError)
+        .ok_or_else(|| AdapterError::ParseError) // TODO can this error handling be shorter/simpler?
         .and_then(|v| v.as_n().map_err(|_| AdapterError::ParseError))
         .and_then(|v| v.parse::<f32>().map(C::new).map_err(|_| AdapterError::ParseError))
 }

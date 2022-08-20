@@ -4,12 +4,13 @@ use std::num::ParseFloatError;
 use aws_sdk_dynamodb::error::ScanError;
 use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::SdkError;
-use crate::adapters::AdapterError::{DatabaseError, ParseError};
+use crate::adapters::AdapterError::{DatabaseError, HttpError, ParseError};
 
 #[derive(Debug)]
 pub enum AdapterError {
     ParseError,
     DatabaseError,
+    HttpError,
 }
 
 impl Display for AdapterError {
@@ -22,17 +23,11 @@ impl Display for AdapterError {
 
 impl Error for AdapterError {}
 
-// impl From<&AttributeValue> for AdapterError {
-//     fn from(_: &AttributeValue) -> Self {
-//         ParseError
-//     }
-// }
-//
-// impl From<ParseFloatError> for AdapterError {
-//     fn from(_: ParseFloatError) -> Self {
-//         ParseError
-//     }
-// }
+impl From<reqwest::Error> for AdapterError {
+    fn from(_: reqwest::Error) -> Self {
+        HttpError
+    }
+}
 
 impl From<SdkError<ScanError>> for AdapterError {
     fn from(_: SdkError<ScanError>) -> Self {
