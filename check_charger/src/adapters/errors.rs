@@ -1,10 +1,7 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use std::num::ParseFloatError;
 use aws_sdk_dynamodb::error::ScanError;
-use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::SdkError;
-use crate::adapters::AdapterError::{DatabaseError, HttpError, ParseError};
 
 #[derive(Debug)]
 pub enum AdapterError {
@@ -25,12 +22,12 @@ impl Error for AdapterError {}
 
 impl From<reqwest::Error> for AdapterError {
     fn from(_: reqwest::Error) -> Self {
-        HttpError
+        AdapterError::HttpError
     }
 }
 
 impl From<SdkError<ScanError>> for AdapterError {
     fn from(_: SdkError<ScanError>) -> Self {
-        DatabaseError
+        AdapterError::DatabaseError
     }
 }

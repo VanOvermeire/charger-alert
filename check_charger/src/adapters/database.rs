@@ -1,11 +1,11 @@
 use std::collections::HashMap;
-use common::{DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate};
+use common::{DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
-use serde_json::to_string;
 use crate::adapters::AdapterError;
 
 pub struct ScanItem {
+    pub id: String,
     pub ne_lat: NorthEastLatitude,
     pub ne_lon: NorthEastLongitude,
     pub sw_lat: SouthWestLatitude,
@@ -18,12 +18,15 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
     type Error = AdapterError;
 
     fn try_from(map: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        // we should not be able to put an item in our db without a string id. so looser error handling for the id
+        let id = map.get(DB_ID_NAME).expect("Database item to have an id").as_s().expect("Database id to be a string").to_string();
         let ne_lat = from_map_to_coordinate(map)?;
         let ne_lon = from_map_to_coordinate(map)?;
         let sw_lat = from_map_to_coordinate(map)?;
         let sw_lon = from_map_to_coordinate(map)?;
 
         Ok(ScanItem {
+            id,
             ne_lat,
             ne_lon,
             sw_lat,
@@ -77,6 +80,7 @@ mod tests {
     #[test]
     fn should_change_a_hashmap_into_a_scan_item() {
         let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -85,6 +89,7 @@ mod tests {
 
         let result: ScanItem = input.try_into().expect("Try into to succeed");
 
+        assert_eq!(result.id, "12345");
         assert_eq!(result.ne_lat.0, 55.0);
         assert_eq!(result.ne_lon.0, 22.2);
         assert_eq!(result.sw_lat.0, 1.0);
@@ -94,6 +99,7 @@ mod tests {
     #[test]
     fn should_return_an_adapter_error_when_a_value_is_missing() {
         let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("something else".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -108,6 +114,7 @@ mod tests {
     #[test]
     fn should_return_an_adapter_error_when_value_is_attribute_value_string() {
         let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::S("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -122,6 +129,7 @@ mod tests {
     #[test]
     fn should_return_an_adapter_error_when_value_is_a_string() {
         let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("fake".to_string())),

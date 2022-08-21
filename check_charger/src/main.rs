@@ -21,11 +21,11 @@ async fn main() -> Result<(), Error> {
 
 async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, arc_client: Arc<T>, http_client: Arc<HttpClient>) -> Result<Value, Error> {
     for item in arc_client.as_ref().get(config.get_table().0.as_str()).await? {
-        //  - if we find any matches with free connectors
-        //  - then send an SES message (configure env vars for this)
-        //  - and delete the entry
-
-        // http_client.as_ref().get(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await;
+        http_client.as_ref().get_chargers(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await?.iter().filter(|c| c.available_connectors > 0).for_each(|c| {
+            println!("Charger with id {} has available connectors!", c.id);
+            // send SES
+            // delete scan item entry in db
+        });
     };
 
     Ok(json!(

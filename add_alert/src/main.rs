@@ -1,12 +1,10 @@
 mod adapters;
 
 use std::sync::Arc;
-use aws_config::meta::region::RegionProviderChain;
-use aws_sdk_dynamodb::{Client, Region};
 use std::convert::TryInto;
 use lambda_http::{Body, Request, Response, service_fn};
 use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
-use common::{build_db_client, ChargerLambdaConfig, DynamoDB};
+use common::{build_db_client, ChargerLambdaConfig};
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {

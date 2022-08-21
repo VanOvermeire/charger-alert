@@ -1,4 +1,3 @@
-use std::env::VarError;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use lambda_http::ext::PayloadError;
