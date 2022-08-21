@@ -89,6 +89,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
           AWS_REGION: ${{ env.AWS_REGION }}
+          SOURCE_EMAIL: ${{ secrets.SOURCE_EMAIL }}
 
   smokeTest:
     needs:

@@ -11,9 +11,10 @@ export class InfraStack extends Stack {
     super(scope, id, props);
 
     const region = process.env.AWS_REGION || DEFAULT_AWS_REGION;
+    const source_email = process.env.SOURCE_EMAIL || "fake@fake.com";
 
     const table = createDatabase(this);
-    const { alertAdder, chargeChecker } = createFunctions(this)(table, region);
+    const { alertAdder, chargeChecker } = createFunctions(this)(table, region, source_email);
     createHttpApi(this)(alertAdder, region);
     createCron(this)(chargeChecker);
   }

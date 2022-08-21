@@ -5,7 +5,7 @@ import {Table} from "aws-cdk-lib/aws-dynamodb";
 
 const handler = 'some.handler';
 
-export const createFunctions = (scope: Construct) => (table: Table, region: string) => {
+export const createFunctions = (scope: Construct) => (table: Table, region: string, source_email: string) => {
     const alertAdder = new Function(scope, 'AlertAdder', {
         handler,
         code: Code.fromAsset('../add_alert.zip'),
@@ -28,6 +28,7 @@ export const createFunctions = (scope: Construct) => (table: Table, region: stri
         environment: {
             REGION: region,
             TABLE: table.tableName,
+            EMAIL: source_email,
         },
     });
     table.grantReadWriteData(chargeChecker);
