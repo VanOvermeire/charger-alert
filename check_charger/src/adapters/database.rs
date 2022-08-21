@@ -1,11 +1,19 @@
 use std::collections::HashMap;
-use common::{DynamoDB, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME};
+use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
 use crate::adapters::AdapterError;
 
+pub struct DbId(String);
+
+impl From<&DbId> for AttributeValue {
+    fn from(id: &DbId) -> Self {
+        AttributeValue::S(id.0.to_string()) // to string because cannot move
+    }
+}
+
 pub struct ScanItem {
-    pub id: String,
+    pub id: DbId,
     pub ne_lat: NorthEastLatitude,
     pub ne_lon: NorthEastLongitude,
     pub sw_lat: SouthWestLatitude,
@@ -26,7 +34,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
         let sw_lon = from_map_to_coordinate(map)?;
 
         Ok(ScanItem {
-            id,
+            id: DbId(id),
             ne_lat,
             ne_lon,
             sw_lat,
@@ -53,13 +61,13 @@ fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>) 
 #[async_trait]
 pub trait CoordinatesDatabase {
     async fn get(&self, table: &str) -> Result<Vec<ScanItem>, AdapterError>;
+    async fn delete(&self, table: &str, id: &DbId) -> Result<(), AdapterError>;
 }
 
 #[async_trait]
-impl CoordinatesDatabase for DynamoDB {
+impl CoordinatesDatabase for DbClient {
     async fn get(&self, table: &str) -> Result<Vec<ScanItem>, AdapterError> {
-        let scan_result = &self.get_client_ref()
-            .scan()
+        let scan_result = &self.get_client_ref().scan()
             .table_name(table)
             .send().await?;
         // again, neat. automatic transform of what was a Vec of Results into a Result of Vec!
@@ -68,6 +76,15 @@ impl CoordinatesDatabase for DynamoDB {
                 .map(|v| v.try_into())
                 .collect()
         ).unwrap_or(Ok(vec![]))
+    }
+
+    async fn delete(&self, table: &str, id: &DbId) -> Result<(), AdapterError> {
+        let _ = &self.get_client_ref().delete_item()
+            .table_name(table)
+            .key(DB_ID_NAME, id.into())
+            .send().await?;
+
+        Ok(())
     }
 }
 

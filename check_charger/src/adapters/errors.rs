@@ -1,13 +1,13 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use aws_sdk_dynamodb::error::ScanError;
-use aws_sdk_dynamodb::SdkError;
+use aws_sdk_dynamodb::types::SdkError;
 
 #[derive(Debug)]
 pub enum AdapterError {
     ParseError,
     DatabaseError,
     HttpError,
+    EmailError,
 }
 
 impl Display for AdapterError {
@@ -26,8 +26,8 @@ impl From<reqwest::Error> for AdapterError {
     }
 }
 
-impl From<SdkError<ScanError>> for AdapterError {
-    fn from(_: SdkError<ScanError>) -> Self {
+impl <T>From<SdkError<T>> for AdapterError {
+    fn from(_: SdkError<T>) -> Self {
         AdapterError::DatabaseError
     }
 }

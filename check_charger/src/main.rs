@@ -24,7 +24,8 @@ async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, arc_clie
         http_client.as_ref().get_chargers(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await?.iter().filter(|c| c.available_connectors > 0).for_each(|c| {
             println!("Charger with id {} has available connectors!", c.id);
             // send SES
-            // delete scan item entry in db
+            // TODO use return value
+            arc_client.as_ref().delete(config.get_table().0.as_str(), &item.id);
         });
     };
 

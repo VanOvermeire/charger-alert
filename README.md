@@ -1,6 +1,8 @@
 # Charger Alert
 
-Demo application
+Demo application that allows you to keep an eye on available connections for recharging your car.
+
+Inconsistencies in approaches (use of traits, generics, hiding or exposing of info) are at least partly caused by this being an experiment.
 
 ## Status
 

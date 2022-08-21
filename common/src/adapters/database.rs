@@ -5,13 +5,13 @@ use crate::config;
 
 pub const DB_ID_NAME: &'static str = "id";
 
-pub struct DynamoDB {
+pub struct DbClient {
     client: Client,
 }
 
-impl DynamoDB {
+impl DbClient {
     pub fn new(client: Client) -> Self {
-        DynamoDB {
+        DbClient {
             client,
         }
     }
@@ -21,8 +21,8 @@ impl DynamoDB {
     }
 }
 
-pub async fn build_db_client(region: &config::Region) -> Arc<DynamoDB> {
+pub async fn build_db_client(region: &config::Region) -> Arc<DbClient> {
     let region_provider = RegionProviderChain::first_try(Region::new(region.0.clone())).or_default_provider();
     let shared_config = aws_config::from_env().region(region_provider).load().await;
-    Arc::new(DynamoDB::new(Client::new(&shared_config)))
+    Arc::new(DbClient::new(Client::new(&shared_config)))
 }
