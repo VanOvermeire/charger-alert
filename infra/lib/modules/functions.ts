@@ -1,12 +1,11 @@
 import {Construct} from "constructs";
 import {Code, Function, Runtime} from "aws-cdk-lib/aws-lambda";
 import {Duration} from "aws-cdk-lib";
-import {REGION} from "./constants";
 import {Table} from "aws-cdk-lib/aws-dynamodb";
 
 const handler = 'some.handler';
 
-export const createFunctions = (scope: Construct) => (table: Table) => {
+export const createFunctions = (scope: Construct) => (table: Table, region: string) => {
     const alertAdder = new Function(scope, 'AlertAdder', {
         handler,
         code: Code.fromAsset('../add_alert.zip'),
@@ -14,7 +13,7 @@ export const createFunctions = (scope: Construct) => (table: Table) => {
         timeout: Duration.seconds(3),
         memorySize: 1024,
         environment: {
-            REGION,
+            REGION: region,
             TABLE: table.tableName,
         },
     });
@@ -27,7 +26,7 @@ export const createFunctions = (scope: Construct) => (table: Table) => {
         timeout: Duration.seconds(60),
         memorySize: 1024,
         environment: {
-            REGION,
+            REGION: region,
             TABLE: table.tableName,
         },
     });

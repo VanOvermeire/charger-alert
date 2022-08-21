@@ -11,8 +11,8 @@ curl --location --request POST "${complete_url}" \
 --fail \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "ne_lat": 9,
-    "ne_lon": 6.1,
-    "sw_lat": 22,
-    "sw_lon": 55.1
+    "ne_lat": 50,
+    "ne_lon": 4.4,
+    "sw_lat": 49.8,
+    "sw_lon": 4.39
 }'

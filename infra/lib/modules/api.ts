@@ -1,11 +1,11 @@
 import {Construct} from "constructs";
 import {CfnOutput, Duration} from "aws-cdk-lib";
-import {API_VERSION, REGION} from "./constants";
+import {API_VERSION} from "./constants";
 import {Function} from "aws-cdk-lib/aws-lambda";
 import {CorsHttpMethod, HttpApi, HttpMethod} from "@aws-cdk/aws-apigatewayv2-alpha";
 import {HttpLambdaIntegration} from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 
-export const createHttpApi = (scope: Construct) => (chargerAlert: Function): HttpApi => {
+export const createHttpApi = (scope: Construct) => (chargerAlert: Function, region: string): HttpApi => {
     const httpApi = new HttpApi(scope, 'ChargerAlertApi', {
         // needed for web testing
         corsPreflight: {
@@ -31,7 +31,7 @@ export const createHttpApi = (scope: Construct) => (chargerAlert: Function): Htt
     });
 
     new CfnOutput(scope, 'apiUrl', {
-        value: `https://${httpApi.httpApiId}.execute-api.${REGION}.amazonaws.com`,
+        value: `https://${httpApi.httpApiId}.execute-api.${region}.amazonaws.com`,
         description: 'The url of the http api',
     });
 

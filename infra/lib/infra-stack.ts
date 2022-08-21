@@ -9,9 +9,11 @@ export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    const region = process.env.AWS_REGION || "fake-region";
+
     const table = createDatabase(this);
-    const { alertAdder, chargeChecker } = createFunctions(this)(table);
-    createHttpApi(this)(alertAdder);
+    const { alertAdder, chargeChecker } = createFunctions(this)(table, region);
+    createHttpApi(this)(alertAdder, region);
     createCron(this)(chargeChecker);
   }
 }
