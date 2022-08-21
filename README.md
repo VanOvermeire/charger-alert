@@ -2,8 +2,6 @@
 
 Demo application that allows you to keep an eye on available connections for recharging your car.
 
-Inconsistencies in approaches (use of traits, generics, hiding or exposing of info) are at least partly caused by this being an experiment. On other occasions, 'experiment' is a great excuse.
-
 ## Status
 
 ![Github Actions Status](https://github.com/VanOvermeire/charger-alert/actions/workflows/github-deploy.yml/badge.svg)
@@ -26,6 +24,11 @@ Lambda 3: on cron, see if a charger is available in the given station and if so 
 - Automatic testing, building, deploying and smoke testing with GitHub actions. Whole flow takes about 10 minutes
 - Infra as code with CDK, including tests
 - Rust for the backend code
+
+## Limitations
+
+- some inconsistencies in approaches (use of traits, generics, hiding or exposing of info), partly caused by me experimenting with approaches
+- error handling incomplete: mapping to our own types, but not doing anything with the underlying errors, which would make debugging issues harder
 
 ## Remarks
 
