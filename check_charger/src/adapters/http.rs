@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::adapters::AdapterError;
 use reqwest::{Client};
 use reqwest::header::CONTENT_TYPE;
@@ -90,6 +91,12 @@ impl Default for HttpClient {
     fn default() -> Self {
         HttpClient::new(Client::new())
     }
+}
+
+pub async fn build_http_client() -> Arc<HttpClient> {
+    Arc::new(
+        HttpClient::default(),
+    )
 }
 
 #[cfg(test)]

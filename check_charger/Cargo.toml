@@ -15,3 +15,4 @@ tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.11.11", features = ["json"] }
 openssl = { version = "0.10", features = ["vendored"] }
 aws-sdk-ses = "0.17.0"
+futures = "0.3.23"

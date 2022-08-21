@@ -1,5 +1,7 @@
+use std::sync::Arc;
 use aws_sdk_ses::Client;
 use aws_sdk_ses::model::{Body, Content, Destination, Message};
+use common::SourceEmailAddress;
 use crate::adapters::AdapterError;
 
 pub struct EmailClient {
@@ -15,15 +17,14 @@ impl EmailClient {
         }
     }
 
-    pub async fn send(&self) -> Result<(), AdapterError> {
+    pub async fn send(&self, destination: &str) -> Result<(), AdapterError> {
         // TODO this can be tested - pull it out
         let message = Message::builder()
             .subject(Content::builder().data("Available connector").build())
             .body(Body::builder().text(Content::builder().data("There is a connector").build()).build())
             .build();
-        // TODO
-        let source = Some("TODO".to_string());
-        let destination = Some(Destination::builder().to_addresses("fake@fake.com").build());
+        let source = Some(self.source.to_string());
+        let destination = Some(Destination::builder().to_addresses(destination.to_string()).build());
 
         let _ = self.client.send_email()
             .set_source(source)
@@ -36,7 +37,9 @@ impl EmailClient {
     }
 }
 
-pub async fn build_email_client(source: &str) -> EmailClient {
+pub async fn build_email_client(source: &SourceEmailAddress) -> Arc<EmailClient> {
     let config = aws_config::load_from_env().await;
-    EmailClient::new(Client::new(&config), source)
+    Arc::new(
+        EmailClient::new(Client::new(&config), source.0.as_str())
+    )
 }
