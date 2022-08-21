@@ -2,6 +2,7 @@ import {Construct} from "constructs";
 import {Code, Function, Runtime} from "aws-cdk-lib/aws-lambda";
 import {Duration} from "aws-cdk-lib";
 import {Table} from "aws-cdk-lib/aws-dynamodb";
+import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 const handler = 'some.handler';
 
@@ -31,6 +32,11 @@ export const createFunctions = (scope: Construct) => (table: Table, region: stri
             EMAIL: source_email,
         },
     });
+    chargeChecker.addToRolePolicy(new PolicyStatement({
+        actions: ['ses:SendEmail', 'SES:SendRawEmail'],
+        resources: ['*'],
+        effect: Effect.ALLOW,
+    }));
     table.grantReadWriteData(chargeChecker);
 
     return {
