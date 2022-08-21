@@ -31,4 +31,5 @@ Lambda 3: on cron, see if a charger is available in the given station and if so 
 - Similar for macros, just work (and useful)
 - Compiling takes a while, as is well-known
 - Switching to workspaces was easy locally, but caused some strange issues in github actions (with the openssl dependency)
+- Await infects large parts of the code base - FP ideas can help limit this
 - Also see remarks in the code itself

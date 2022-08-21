@@ -46,20 +46,6 @@ macro_rules! generate_from_for_coordinate {
     };
 }
 
-// macro_rules! generate_try_into_for_coordinate {
-//     ($coordinate:ident) => {
-//         impl TryInto<$coordinate> for AttributeValue {
-//             type Error = CoreError;
-//
-//             fn try_into(self) -> Result<$coordinate, Self::Error> {
-//                 let value = self.as_n()?;
-//                 let as_number = value.parse::<f32>()?;
-//                 Ok($coordinate(as_number))
-//             }
-//         }
-//     }
-// }
-
 macro_rules! generate_methods_for_coordinate {
         ($coordinate:ident,$name:literal) => {
             generate_trait_methods_for_coordinate!($coordinate, $name);

@@ -20,8 +20,8 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     })).await
 }
 
-// TODO check dyn or alternative
-async fn flow(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<dyn CoordinatesDb>) -> lambda_http::http::Result<Response<String>> {
+// uses trait instead of the specific implementation
+async fn flow<T: CoordinatesDb>(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
             match arc_client.as_ref().add(config.as_ref().get_table().0.as_ref(), &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {

@@ -6,10 +6,10 @@ use serde_json::to_string;
 use crate::adapters::AdapterError;
 
 pub struct ScanItem {
-    ne_lat: NorthEastLatitude,
-    ne_lon: NorthEastLongitude,
-    sw_lat: SouthWestLatitude,
-    sw_lon: SouthWestLongitude,
+    pub ne_lat: NorthEastLatitude,
+    pub ne_lon: NorthEastLongitude,
+    pub sw_lat: SouthWestLatitude,
+    pub sw_lon: SouthWestLongitude,
 }
 
 // why not put all this into the core (like by implementing try_into for coordinates?) mostly because I don't want to further contaminate that part of the code
@@ -36,14 +36,19 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
 // Rust elegantly infers the correct types. writing even shorter code by trying to map over this function 4 times and letting Rust do the rest
 // did not work out
 fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>) -> Result<C, AdapterError> {
-    map.get(C::get_type_name())
-        .ok_or_else(|| AdapterError::ParseError) // TODO can this error handling be shorter/simpler?
+    map.get(C::get_type_name()).ok_or_else(|| AdapterError::ParseError)
         .and_then(|v| v.as_n().map_err(|_| AdapterError::ParseError))
         .and_then(|v| v.parse::<f32>().map(C::new).map_err(|_| AdapterError::ParseError))
+
+    // alternative with less error handling thanks to pattern matching, but a bit harder to read the mappings //
+    // match map.get(C::get_type_name()).map(|v| v.as_n().map(|v| v.parse::<f32>().map(C::new))) {
+    //     Some(Ok(Ok(res))) => Ok(res),
+    //     _ => Err(AdapterError::ParseError)
+    // }
 }
 
 #[async_trait]
-trait CoordinatesDatabase {
+pub trait CoordinatesDatabase {
     async fn get(&self, table: &str) -> Result<Vec<ScanItem>, AdapterError>;
 }
 

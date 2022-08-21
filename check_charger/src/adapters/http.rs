@@ -51,7 +51,8 @@ impl HttpClient {
         }
     }
 
-    async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, AdapterError> {
+    // internally we do a post, but it doesn't actually change anything. so get seems like a fitting name
+    pub async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, AdapterError> {
         let body = format!("NELat={}&NELng={}&SWLat={}&SWLng={}", ne_lat.0, ne_lon.0, sw_lat.0, sw_lon.0);
 
         Ok(self.client.post(BASE_URL)
