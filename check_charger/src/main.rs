@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 
 use futures::future::join_all;
 use lambda_runtime::{Error, LambdaEvent, service_fn};
@@ -12,7 +12,7 @@ mod adapters;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let lambda_config = Arc::new(
+    let lambda_config = Rc::new(
         ChargerLambdaConfig::new().expect("Config to be available")
     );
     let db_client = build_db_client(lambda_config.clone().as_ref().get_region()).await;
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Error> {
     })).await
 }
 
-async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, db_client: Arc<T>, http_client: Arc<HttpClient>, email_client: Arc<EmailClient>) -> Result<Value, Error> {
+async fn flow<T: CoordinatesDatabase>(config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, http_client: Rc<HttpClient>, email_client: Rc<EmailClient>) -> Result<Value, Error> {
     for item in db_client.get(config.get_table().0.as_str()).await? {
         let chargers = http_client.get_chargers(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await?;
         let email_and_db_results: Vec<Result<(), AdapterError>> = join_all(chargers.iter()
@@ -44,7 +44,7 @@ async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, db_clien
     ))
 }
 
-async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, email: &Email, config: Arc<ChargerLambdaConfig>, db_client: Arc<T>, email_client: Arc<EmailClient>) -> Result<(), AdapterError> {
+async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, email: &Email, config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, email_client: Rc<EmailClient>) -> Result<(), AdapterError> {
     email_client.send(email).await?;
     Ok(db_client.delete(config.get_table().0.as_str(), id).await?)
 }

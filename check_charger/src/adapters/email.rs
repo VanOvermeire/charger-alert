@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 use aws_sdk_ses::Client;
 use aws_sdk_ses::model::{Body, Content, Destination, Message};
 use common::{Email, SourceEmailAddress};
@@ -50,9 +50,9 @@ fn build_email_message(source: &str, destination: &Email) -> (Message, Option<St
     (message, source, destination)
 }
 
-pub async fn build_email_client(source: &SourceEmailAddress) -> Arc<EmailClient> {
+pub async fn build_email_client(source: &SourceEmailAddress) -> Rc<EmailClient> {
     let config = aws_config::load_from_env().await;
-    Arc::new(
+    Rc::new(
         EmailClient::new(Client::new(&config), source.0.as_str())
     )
 }

@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_dynamodb::{Client, Region};
 use crate::config;
@@ -22,8 +22,8 @@ impl DbClient {
     }
 }
 
-pub async fn build_db_client(region: &config::Region) -> Arc<DbClient> {
+pub async fn build_db_client(region: &config::Region) -> Rc<DbClient> {
     let region_provider = RegionProviderChain::first_try(Region::new(region.0.clone())).or_default_provider();
     let shared_config = aws_config::from_env().region(region_provider).load().await;
-    Arc::new(DbClient::new(Client::new(&shared_config)))
+    Rc::new(DbClient::new(Client::new(&shared_config)))
 }

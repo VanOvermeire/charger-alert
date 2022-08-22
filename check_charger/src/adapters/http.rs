@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 use crate::adapters::AdapterError;
 use reqwest::{Client};
 use reqwest::header::CONTENT_TYPE;
@@ -93,8 +93,8 @@ fn count(connectors: &Vec<Connectors>, field_supplier: fn(&Connectors) -> i8) ->
     connectors.iter().map(field_supplier).sum()
 }
 
-pub async fn build_http_client() -> Arc<HttpClient> {
-    Arc::new(
+pub async fn build_http_client() -> Rc<HttpClient> {
+    Rc::new(
         HttpClient::default(),
     )
 }
