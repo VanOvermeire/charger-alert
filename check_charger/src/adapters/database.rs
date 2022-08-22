@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME};
+use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME, Email, DB_EMAIL_NAME};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::output::ScanOutput;
@@ -10,12 +10,13 @@ pub struct DbId(String);
 
 impl From<&DbId> for AttributeValue {
     fn from(id: &DbId) -> Self {
-        AttributeValue::S(id.0.to_string()) // to string because cannot move
+        AttributeValue::S(id.0.to_string()) // to string because cannot move (same in some other cases, like for email below)
     }
 }
 
 pub struct ScanItem {
     pub id: DbId,
+    pub email: Email,
     pub ne_lat: NorthEastLatitude,
     pub ne_lon: NorthEastLongitude,
     pub sw_lat: SouthWestLatitude,
@@ -30,6 +31,8 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
     fn try_from(map: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         // we should not be able to put an item in our db without a string id. so looser error handling for the id
         let id = map.get(DB_ID_NAME).expect("Database item to have an id").as_s().expect("Database id to be a string").to_string();
+        let email = map.get(DB_EMAIL_NAME).ok_or(AdapterError::ParseError).and_then(|v| v.as_s().map_err(|_| AdapterError::ParseError))?;
+
         let ne_lat = from_map_to_coordinate(map)?;
         let ne_lon = from_map_to_coordinate(map)?;
         let sw_lat = from_map_to_coordinate(map)?;
@@ -37,6 +40,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
 
         Ok(ScanItem {
             id: DbId(id),
+            email: Email(email.to_string()),
             ne_lat,
             ne_lon,
             sw_lat,
@@ -103,6 +107,7 @@ mod tests {
     fn should_change_scan_into_scan_items() {
         let first = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -110,6 +115,7 @@ mod tests {
         ]);
         let second = HashMap::from([
             ("id".to_string(), AttributeValue::S("123456".to_string())),
+            ("email".to_string(), AttributeValue::S("test2@test.com".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -129,6 +135,7 @@ mod tests {
     fn should_fail_to_change_scans_to_scan_items_when_try_into_fails() {
         let missing_coordinate = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -144,6 +151,7 @@ mod tests {
     fn should_change_a_hashmap_into_a_scan_item() {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -163,6 +171,7 @@ mod tests {
     fn should_return_an_adapter_error_when_a_value_is_missing() {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
             ("something else".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -178,6 +187,7 @@ mod tests {
     fn should_return_an_adapter_error_when_value_is_attribute_value_string() {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::S("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -193,6 +203,38 @@ mod tests {
     fn should_return_an_adapter_error_when_value_is_a_string() {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("nelat".to_string(), AttributeValue::N("55".to_string())),
+            ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
+            ("swlon".to_string(), AttributeValue::N("fake".to_string())),
+            ("swlat".to_string(), AttributeValue::N("1".to_string())),
+        ]);
+
+        let result: Result<ScanItem, AdapterError> = input.try_into();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn should_return_an_adapter_error_when_email_is_missing() {
+        let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("nelat".to_string(), AttributeValue::N("55".to_string())),
+            ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
+            ("swlon".to_string(), AttributeValue::N("fake".to_string())),
+            ("swlat".to_string(), AttributeValue::N("1".to_string())),
+        ]);
+
+        let result: Result<ScanItem, AdapterError> = input.try_into();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn should_return_an_adapter_error_when_email_has_wrong_attribute_type() {
+        let ref input = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("email".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("fake".to_string())),

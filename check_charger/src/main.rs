@@ -4,7 +4,7 @@ use futures::future::join_all;
 use lambda_runtime::{Error, LambdaEvent, service_fn};
 use serde_json::{json, Value};
 
-use common::{build_db_client, ChargerLambdaConfig};
+use common::{build_db_client, ChargerLambdaConfig, Email};
 
 use crate::adapters::{AdapterError, build_email_client, build_http_client, CoordinatesDatabase, DbId, EmailClient, HttpClient};
 
@@ -33,8 +33,7 @@ async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, db_clien
             .filter(|c| c.available_connectors > 0)
             .map(|c| async {
                 println!("Charger with id {} has available connectors!", c.id);
-                // TODO get email
-                send_email_and_delete_item(&item.id, config.clone(), db_client.clone(), email_client.clone()).await
+                send_email_and_delete_item(&item.id, &item.email,config.clone(), db_client.clone(), email_client.clone()).await
             })
             .collect::<Vec<_>>()).await;
         let _ = email_and_db_results.into_iter().collect::<Result<Vec<()>, AdapterError>>()?;
@@ -45,7 +44,7 @@ async fn flow<T: CoordinatesDatabase>(config: Arc<ChargerLambdaConfig>, db_clien
     ))
 }
 
-async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, config: Arc<ChargerLambdaConfig>, db_client: Arc<T>, email_client: Arc<EmailClient>) -> Result<(), AdapterError> {
-    email_client.send("FAKE&FAKE.com").await?;
+async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, email: &Email, config: Arc<ChargerLambdaConfig>, db_client: Arc<T>, email_client: Arc<EmailClient>) -> Result<(), AdapterError> {
+    email_client.send(email).await?;
     Ok(db_client.delete(config.get_table().0.as_str(), id).await?)
 }

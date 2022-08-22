@@ -1,12 +1,13 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
-use common::{DB_ID_NAME, DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate};
+use common::{DB_ID_NAME, DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, Email, DB_EMAIL_NAME};
 use crate::adapters::AdapterError;
 
 #[async_trait]
 pub trait CoordinatesDb {
-    async fn add(&self, table: &str,
+    async fn add(&self,
+                 table: &str, email: &Email,
                  lat: &NorthEastLatitude, lon: &NorthEastLongitude,
                  sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError>;
 }
@@ -14,7 +15,7 @@ pub trait CoordinatesDb {
 #[async_trait]
 impl CoordinatesDb for DbClient {
     async fn add(&self,
-                 table: &str,
+                 table: &str, email: &Email,
                  ne_lat: &NorthEastLatitude, ne_lon: &NorthEastLongitude,
                  sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError> {
         let id = generate_id();
@@ -22,6 +23,7 @@ impl CoordinatesDb for DbClient {
         match &self.get_client_ref().put_item()
             .table_name(table)
             .item(DB_ID_NAME, AttributeValue::S(id))
+            .item(DB_EMAIL_NAME, AttributeValue::S(email.0.to_string()))
             .item(ne_lon.get_name(), ne_lon.into())
             .item(ne_lat.get_name(), ne_lat.into())
             .item(sw_lat.get_name(), sw_lat.into())

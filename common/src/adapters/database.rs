@@ -4,6 +4,7 @@ use aws_sdk_dynamodb::{Client, Region};
 use crate::config;
 
 pub const DB_ID_NAME: &'static str = "id";
+pub const DB_EMAIL_NAME: &'static str = "email";
 
 pub struct DbClient {
     client: Client,

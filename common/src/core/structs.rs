@@ -1,6 +1,9 @@
 use serde::{Deserialize};
 use aws_sdk_dynamodb::model::AttributeValue;
 
+#[derive(Deserialize, Debug)]
+pub struct Email(pub String);
+
 pub trait Coordinate {
     fn new(val: f32) -> Self;
     fn get_type_name() -> &'static str;

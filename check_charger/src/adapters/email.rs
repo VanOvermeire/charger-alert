@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use aws_sdk_ses::Client;
 use aws_sdk_ses::model::{Body, Content, Destination, Message};
-use common::SourceEmailAddress;
+use common::{Email, SourceEmailAddress};
 use crate::adapters::AdapterError;
 
 pub struct EmailClient {
@@ -17,8 +17,9 @@ impl EmailClient {
         }
     }
 
-    pub async fn send(&self, destination: &str) -> Result<(), AdapterError> {
-        let (message, source, destination) = build_email_message(self.source.as_str(), destination);
+    pub async fn send(&self, to_email: &Email) -> Result<(), AdapterError> {
+        let (message, source, destination) = build_email_message(self.source.as_str(), to_email);
+        println!("Sending an email to {}", to_email.0);
 
         let _ = self.client.send_email()
             .set_source(source)
@@ -31,8 +32,8 @@ impl EmailClient {
     }
 }
 
-// TODO better message
-fn build_email_message(source: &str, destination: &str) -> (Message, Option<String>, Option<Destination>) {
+// TODO better message - body should contain some info about the actual connector
+fn build_email_message(source: &str, destination: &Email) -> (Message, Option<String>, Option<Destination>) {
     let message = Message::builder()
         .subject(Content::builder()
             .data("Available connector!")
@@ -44,7 +45,7 @@ fn build_email_message(source: &str, destination: &str) -> (Message, Option<Stri
             .build())
         .build();
     let source = Some(source.to_string());
-    let destination = Some(Destination::builder().to_addresses(destination.to_string()).build());
+    let destination = Some(Destination::builder().to_addresses(destination.0.to_string()).build());
 
     (message, source, destination)
 }
@@ -62,7 +63,7 @@ mod tests {
 
     #[test]
     fn should_build_an_email_message() {
-        let (result_message, result_source, result_destination) = build_email_message("source@email.com", "destination@email.com");
+        let (result_message, result_source, result_destination) = build_email_message("source@email.com", &Email("destination@email.com".to_string()));
 
         let subject = result_message.subject().unwrap().data().unwrap();
         let body = result_message.body().unwrap().text().unwrap().data().unwrap();

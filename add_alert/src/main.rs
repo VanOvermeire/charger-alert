@@ -6,8 +6,6 @@ use lambda_http::{Body, Request, Response, service_fn};
 use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
 use common::{build_db_client, ChargerLambdaConfig};
 
-// TODO add email
-
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
     let lambda_config = Arc::new(
@@ -20,11 +18,11 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     })).await
 }
 
-// uses trait instead of the specific implementation
+// uses trait instead of a specific implementation - easier to switch out
 async fn flow<T: CoordinatesDb>(request: Request, config: Arc<ChargerLambdaConfig>, arc_client: Arc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
-            match arc_client.as_ref().add(config.as_ref().get_table().0.as_ref(), &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
+            match arc_client.add(config.get_table().0.as_ref(), &req.email, &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
                 Ok(_) => success_response(),
                 Err(e) => e.to_http_response(),
             }

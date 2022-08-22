@@ -29,6 +29,7 @@ Lambda 3: on cron, see if a charger is available in the given station and if so 
 
 - some inconsistencies in approaches (use of traits, generics, hiding or exposing of info), partly caused by me experimenting with approaches
 - error handling incomplete: mapping to our own types, but not doing anything with the underlying errors, which would make debugging issues harder
+- some copying of string etc. that could perhaps be avoided?
 
 ## Remarks
 
