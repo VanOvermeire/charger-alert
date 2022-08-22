@@ -6,6 +6,8 @@ use lambda_http::{Body, Request, Response, service_fn};
 use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
 use common::{build_db_client, ChargerLambdaConfig};
 
+// TODO add email
+
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
     let lambda_config = Arc::new(

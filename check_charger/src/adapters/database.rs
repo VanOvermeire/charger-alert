@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
+use aws_sdk_dynamodb::output::ScanOutput;
 use crate::adapters::AdapterError;
 
+#[derive(Debug,PartialEq)]
 pub struct DbId(String);
 
 impl From<&DbId> for AttributeValue {
@@ -70,12 +72,7 @@ impl CoordinatesDatabase for DbClient {
         let scan_result = &self.get_client_ref().scan()
             .table_name(table)
             .send().await?;
-        // again, neat. automatic transform of what was a Vec of Results into a Result of Vec!
-        scan_result.items.as_ref().map(|vec|
-            vec.into_iter()
-                .map(|v| v.try_into())
-                .collect()
-        ).unwrap_or(Ok(vec![]))
+        scans_to_scan_items(&scan_result)
     }
 
     async fn delete(&self, table: &str, id: &DbId) -> Result<(), AdapterError> {
@@ -83,16 +80,65 @@ impl CoordinatesDatabase for DbClient {
             .table_name(table)
             .key(DB_ID_NAME, id.into())
             .send().await?;
-
         Ok(())
     }
 }
 
+fn scans_to_scan_items(scan_result: &ScanOutput) -> Result<Vec<ScanItem>, AdapterError> {
+    scan_result.items.as_ref().map(|vec|
+        vec.into_iter()
+            .map(|v| v.try_into())
+            .collect()
+    ).unwrap_or(Ok(vec![]))
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use std::collections::HashMap;
     use aws_sdk_dynamodb::model::AttributeValue;
-    use crate::adapters::{AdapterError, ScanItem};
+    use aws_sdk_dynamodb::output::ScanOutput;
+
+    #[test]
+    fn should_change_scan_into_scan_items() {
+        let first = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("nelat".to_string(), AttributeValue::N("55".to_string())),
+            ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
+            ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
+            ("swlat".to_string(), AttributeValue::N("1".to_string())),
+        ]);
+        let second = HashMap::from([
+            ("id".to_string(), AttributeValue::S("123456".to_string())),
+            ("nelat".to_string(), AttributeValue::N("55".to_string())),
+            ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
+            ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
+            ("swlat".to_string(), AttributeValue::N("1".to_string())),
+        ]);
+        let scan = ScanOutput::builder().items(first).items(second).count(2).build();
+
+        let result = scans_to_scan_items(&scan).expect("Unwrap to succeed");
+
+        let first_result = result.get(0).unwrap();
+        assert_eq!(first_result.id, DbId("12345".to_string()));
+        let second_result = result.get(1).unwrap();
+        assert_eq!(second_result.id, DbId("123456".to_string()));
+    }
+
+    #[test]
+    fn should_fail_to_change_scans_to_scan_items_when_try_into_fails() {
+        let missing_coordinate = HashMap::from([
+            ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("nelat".to_string(), AttributeValue::N("55".to_string())),
+            ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
+            ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
+        ]);
+        let scan = ScanOutput::builder().items(missing_coordinate).count(1).build();
+
+        let result = scans_to_scan_items(&scan);
+
+        assert!(result.is_err())
+    }
 
     #[test]
     fn should_change_a_hashmap_into_a_scan_item() {
@@ -106,7 +152,7 @@ mod tests {
 
         let result: ScanItem = input.try_into().expect("Try into to succeed");
 
-        assert_eq!(result.id, "12345");
+        assert_eq!(result.id, DbId("12345".to_string()));
         assert_eq!(result.ne_lat.0, 55.0);
         assert_eq!(result.ne_lon.0, 22.2);
         assert_eq!(result.sw_lat.0, 1.0);

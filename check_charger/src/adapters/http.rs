@@ -46,6 +46,12 @@ pub struct HttpClient {
     client: Client,
 }
 
+impl Default for HttpClient {
+    fn default() -> Self {
+        HttpClient::new(Client::new())
+    }
+}
+
 impl HttpClient {
     fn new(client: Client) -> Self {
         HttpClient {
@@ -85,12 +91,6 @@ fn charger_info_to_chargers(info: ChargerInfo) -> Vec<Charger> {
 
 fn count(connectors: &Vec<Connectors>, field_supplier: fn(&Connectors) -> i8) -> i8 {
     connectors.iter().map(field_supplier).sum()
-}
-
-impl Default for HttpClient {
-    fn default() -> Self {
-        HttpClient::new(Client::new())
-    }
 }
 
 pub async fn build_http_client() -> Arc<HttpClient> {
