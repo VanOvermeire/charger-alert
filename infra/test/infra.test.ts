@@ -42,6 +42,14 @@ describe('Charger infrastructure', () => {
                 Statement: [
                     {
                         Action: [
+                            "ses:SendEmail",
+                            "SES:SendRawEmail"
+                        ],
+                        Effect: "Allow",
+                        Resource: "*"
+                    },
+                    {
+                        Action: [
                             "dynamodb:BatchGetItem",
                             "dynamodb:GetRecords",
                             "dynamodb:GetShardIterator",
@@ -54,7 +62,8 @@ describe('Charger infrastructure', () => {
                             "dynamodb:UpdateItem",
                             "dynamodb:DeleteItem",
                             "dynamodb:DescribeTable"
-                        ]
+                        ],
+                        Effect: "Allow"
                     }
                 ]
             }
