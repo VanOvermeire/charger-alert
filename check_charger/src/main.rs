@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 
 use common::{build_db_client, ChargerLambdaConfig, Email};
 
-use crate::adapters::{AdapterError, build_email_client, build_http_client, CoordinatesDatabase, DbId, EmailClient, HttpClient};
+use crate::adapters::{AdapterError, build_email_client, build_http_client, Charger, CoordinatesDatabase, DbId, EmailClient, HttpClient};
 
 mod adapters;
 
@@ -29,19 +29,24 @@ async fn main() -> Result<(), Error> {
 async fn flow<T: CoordinatesDatabase>(config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, http_client: Rc<HttpClient>, email_client: Rc<EmailClient>) -> Result<Value, Error> {
     for item in db_client.get(config.get_table().0.as_str()).await? {
         let chargers = http_client.get_chargers(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await?;
-        let email_and_db_results: Vec<Result<(), AdapterError>> = join_all(chargers.iter()
-            .filter(|c| c.available_connectors > 0)
-            .map(|c| async {
-                println!("Charger with id {} has available connectors!", c.id);
-                send_email_and_delete_item(&item.id, &item.email,config.clone(), db_client.clone(), email_client.clone()).await
-            })
-            .collect::<Vec<_>>()).await;
-        let _ = email_and_db_results.into_iter().collect::<Result<Vec<()>, AdapterError>>()?;
+        // we only want to send *one* email
+        let last_available_charger_if_any = chargers.iter()
+            .filter(has_available_connector)
+            .last();
+
+        if let Some(charger) = &last_available_charger_if_any {
+            println!("Charger with id {} has available connectors!", charger.id);
+            send_email_and_delete_item(&item.id, &item.email, config.clone(), db_client.clone(), email_client.clone()).await?;
+        }
     };
 
     Ok(json!(
         { "message": "done" }
     ))
+}
+
+fn has_available_connector(charger: &&Charger) -> bool {
+    charger.available_connectors > 0
 }
 
 async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, email: &Email, config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, email_client: Rc<EmailClient>) -> Result<(), AdapterError> {
