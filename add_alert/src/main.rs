@@ -22,7 +22,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 async fn flow<T: CoordinatesDb>(request: Request, config: Rc<ChargerLambdaConfig>, arc_client: Rc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
-            match arc_client.add(config.get_table().0.as_ref(), req.email, &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
+            match arc_client.add(config.get_table().0.as_ref(), req.email, req.ne_lat, req.ne_lon, req.sw_lat, req.sw_lon).await {
                 Ok(_) => success_response(),
                 Err(e) => e.to_http_response(),
             }

@@ -8,16 +8,16 @@ use crate::adapters::AdapterError;
 pub trait CoordinatesDb {
     async fn add(&self,
                  table: &str, email: Email,
-                 lat: &NorthEastLatitude, lon: &NorthEastLongitude,
-                 sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError>;
+                 ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude,
+                 sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<(), AdapterError>;
 }
 
 #[async_trait]
 impl CoordinatesDb for DbClient {
     async fn add(&self,
                  table: &str, email: Email,
-                 ne_lat: &NorthEastLatitude, ne_lon: &NorthEastLongitude,
-                 sw_lat: &SouthWestLatitude, sw_lon: &SouthWestLongitude) -> Result<(), AdapterError> {
+                 ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude,
+                 sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<(), AdapterError> {
         let id = generate_id();
 
         match &self.get_client_ref().put_item()
