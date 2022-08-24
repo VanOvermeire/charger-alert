@@ -3,8 +3,8 @@ mod adapters;
 use std::convert::TryInto;
 use std::rc::Rc;
 use lambda_http::{Body, Request, Response, service_fn};
-use crate::adapters::{ChargerRequest, CoordinatesDb, success_response};
-use common::{build_db_client, ChargerLambdaConfig};
+use crate::adapters::{ChargerRequest, CoordinatesDb};
+use common::{build_db_client, ChargerLambdaConfig, success_response};
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
@@ -22,7 +22,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 async fn flow<T: CoordinatesDb>(request: Request, config: Rc<ChargerLambdaConfig>, arc_client: Rc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
-            match arc_client.add(config.get_table().0.as_ref(), req.email, &req.ne_lat, &req.ne_lon, &req.sw_lat, &req.sw_lon).await {
+            match arc_client.add(config.get_table().0.as_ref(), req.email, req.ne_lat, req.ne_lon, req.sw_lat, req.sw_lon).await {
                 Ok(_) => success_response(),
                 Err(e) => e.to_http_response(),
             }

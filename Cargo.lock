@@ -489,6 +489,7 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
+ "lambda_http",
  "openssl",
  "serde",
  "serde_json",
@@ -661,6 +662,20 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
+]
+
+[[package]]
+name = "get_chargers"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "common",
+ "lambda_http",
+ "lambda_runtime",
+ "openssl",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

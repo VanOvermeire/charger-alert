@@ -3,5 +3,6 @@
 members = [
     "add_alert",
     "check_charger",
+    "get_chargers",
     "common"
 ]
