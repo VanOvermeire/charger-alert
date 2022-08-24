@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-use futures::future::join_all;
 use lambda_runtime::{Error, LambdaEvent, service_fn};
 use serde_json::{json, Value};
 
