@@ -18,7 +18,7 @@ describe('Charger infrastructure', () => {
     it('should create Lambdas with a custom runtime and permission to read / write to dynamo', () => {
         const template = getTemplate();
 
-        template.resourceCountIs('AWS::Lambda::Function', 2);
+        template.resourceCountIs('AWS::Lambda::Function', 3);
         template.hasResourceProperties('AWS::Lambda::Function', {
             Runtime: "provided.al2"
         });
@@ -79,6 +79,9 @@ describe('Charger infrastructure', () => {
         });
         template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
             RouteKey: 'POST /v1/alert'
+        })
+        template.hasResourceProperties('AWS::ApiGatewayV2::Route', {
+            RouteKey: 'GET /v1/chargers'
         })
     });
 

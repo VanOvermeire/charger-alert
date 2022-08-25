@@ -18,7 +18,7 @@ jobs:
           - test-type: charger
             test-command: cargo test
           - test-type: cdk
-            test-command: zip add_alert.zip LICENSE && zip check_charger.zip LICENSE && cd infra && npm i && npm test # fake zips as 'code' for the Lambda
+            test-command: zip add_alert.zip LICENSE && zip check_charger.zip LICENSE && zip get_chargers.zip LICENSE && cd infra && npm i && npm test # fake zips as 'code' for the Lambda
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -35,6 +35,8 @@ jobs:
             build-bin-name: add_alert
           - build-type: checker
             build-bin-name: check_charger
+          - build-type: getter
+            build-bin-name: get_chargers
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -77,6 +79,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: check_charger_build
+      - name: Download get chargers
+        uses: actions/download-artifact@v3
+        with:
+          name: get_chargers_build
       - name: Deploy to AWS
         uses: youyo/aws-cdk-github-actions@v2
         with:

@@ -33,8 +33,8 @@ pub struct SourceEmailAddress(pub String);
 
 #[derive(Debug, Clone)]
 pub struct ChargerLambdaConfig {
-    table: Table,
     region: Region,
+    table: Table,
     email: Option<SourceEmailAddress>
 }
 
