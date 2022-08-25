@@ -491,6 +491,7 @@ dependencies = [
  "aws-sdk-dynamodb",
  "lambda_http",
  "openssl",
+ "reqwest",
  "serde",
  "serde_json",
 ]

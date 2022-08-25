@@ -1,11 +1,11 @@
 use std::rc::Rc;
-use crate::adapters::AdapterError;
 use reqwest::{Client};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
-use common::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+use crate::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+use crate::http::errors::HttpError;
 
-// for external use, unlike the below that map what we receive from the endpoint
+// for external use, unlike the below structs that map what we receive from the endpoint
 #[derive(Debug)]
 pub struct Charger {
     pub id: i32,
@@ -59,13 +59,13 @@ impl HttpClient {
         }
     }
 
-    pub async fn get_chargers(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<Vec<Charger>, AdapterError> {
+    pub async fn get_chargers(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<Vec<Charger>, HttpError> {
         self.get(ne_lat, ne_lon, sw_lat, sw_lon).await
             .map(charger_info_to_chargers)
     }
 
     // internally we do a post, but it doesn't actually change anything. so get seems like a fitting name
-    async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, AdapterError> {
+    async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, HttpError> {
         let body = format!("NELat={}&NELng={}&SWLat={}&SWLng={}", ne_lat.0, ne_lon.0, sw_lat.0, sw_lon.0);
 
         Ok(self.client.post(BASE_URL)
@@ -76,6 +76,12 @@ impl HttpClient {
             .json::<ChargerInfo>()
             .await?)
     }
+}
+
+pub async fn build_http_client() -> Rc<HttpClient> {
+    Rc::new(
+        HttpClient::default(),
+    )
 }
 
 fn charger_info_to_chargers(info: ChargerInfo) -> Vec<Charger> {
@@ -91,12 +97,6 @@ fn charger_info_to_chargers(info: ChargerInfo) -> Vec<Charger> {
 
 fn count(connectors: &Vec<Connectors>, field_supplier: fn(&Connectors) -> i8) -> i8 {
     connectors.iter().map(field_supplier).sum()
-}
-
-pub async fn build_http_client() -> Rc<HttpClient> {
-    Rc::new(
-        HttpClient::default(),
-    )
 }
 
 #[cfg(test)]
