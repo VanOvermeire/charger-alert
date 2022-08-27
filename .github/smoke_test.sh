@@ -15,5 +15,6 @@ curl --location --request POST "${complete_url}" \
     "ne_lon": 4.4,
     "sw_lat": 49.8,
     "sw_lon": 4.39,
-    "email": "test@test.com"
+    "email": "test@test.com",
+    "charger_id": 1
 }'

@@ -5,6 +5,7 @@ use crate::config;
 
 pub const DB_ID_NAME: &'static str = "id";
 pub const DB_EMAIL_NAME: &'static str = "email";
+pub const DB_CHARGER_ID: &'static str = "charger_id";
 
 pub struct DbClient {
     client: Client,

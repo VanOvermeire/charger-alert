@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use aws_sdk_dynamodb::error::{DeleteItemError, ScanError};
+use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_ses::error::SendEmailError;
 
@@ -43,5 +44,11 @@ impl From<SdkError<DeleteItemError>> for AdapterError {
 impl From<SdkError<SendEmailError>> for AdapterError {
     fn from(_: SdkError<SendEmailError>) -> Self {
         AdapterError::EmailError
+    }
+}
+
+impl From<&AttributeValue> for AdapterError {
+    fn from(_: &AttributeValue) -> Self {
+        AdapterError::ParseError
     }
 }

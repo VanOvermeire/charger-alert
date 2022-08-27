@@ -1,11 +1,12 @@
 use lambda_http::{Request, RequestExt};
 use serde::{Deserialize};
-use common::{Email, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+use common::{ChargerId, Email, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 use crate::adapters::AdapterError;
 
 #[derive(Deserialize, Debug)]
 pub struct ChargerRequest {
     pub email: Email,
+    pub charger_id: ChargerId,
     pub ne_lat: NorthEastLatitude,
     pub ne_lon: NorthEastLongitude,
     pub sw_lat: SouthWestLatitude,
@@ -29,7 +30,7 @@ mod tests {
 
     #[test]
     fn should_turn_a_http_request_into_a_charger_request() {
-        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com" }"#;
+        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com", "charger_id": 5 }"#;
         let mut request = Request::new(Body::Text(body_string.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
@@ -37,6 +38,7 @@ mod tests {
         let result: ChargerRequest = request.try_into().expect("try_into to succeed for request");
 
         assert_eq!(result.email.0, "test@test.com");
+        assert_eq!(result.charger_id.0, 5);
         assert_eq!(result.ne_lat.0, 2.3);
         assert_eq!(result.ne_lon.0, 1.5);
         assert_eq!(result.sw_lat.0, 55.0);
@@ -45,7 +47,7 @@ mod tests {
 
     #[test]
     fn should_turn_an_http_request_without_json_content_type_into_an_error() {
-        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com" }"#;
+        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com", "charger_id": 5 }"#;
         let mut request = Request::new(Body::Text(body_string.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "text".parse().unwrap());
@@ -57,7 +59,7 @@ mod tests {
 
     #[test]
     fn should_turn_an_http_request_with_missing_value_into_an_error() {
-        let body_string = r#"{ "ne_lat": 2.3, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com" }"#;
+        let body_string = r#"{ "ne_lat": 2.3, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com", "charger_id": 5 }"#;
         let mut request = Request::new(Body::Text(body_string.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
@@ -69,7 +71,7 @@ mod tests {
 
     #[test]
     fn should_turn_an_invalid_http_request_into_an_error() {
-        let body_string_with_missing_ending_bracket = r#"{ "ne_lat": 2.3, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com""#;
+        let body_string_with_missing_ending_bracket = r#"{ "ne_lat": 2.3, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com", "charger_id": 5"#;
         let mut request = Request::new(Body::Text(body_string_with_missing_ending_bracket.to_owned()));
         let headers = request.headers_mut();
         headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());

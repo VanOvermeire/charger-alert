@@ -4,6 +4,9 @@ use aws_sdk_dynamodb::model::AttributeValue;
 #[derive(Deserialize, Debug)]
 pub struct Email(pub String);
 
+#[derive(Deserialize, Debug)]
+pub struct ChargerId(pub i32);
+
 pub trait Coordinate {
     fn new(val: f32) -> Self;
     fn get_type_name() -> &'static str;

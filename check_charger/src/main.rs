@@ -3,7 +3,7 @@ use std::rc::Rc;
 use lambda_runtime::{Error, LambdaEvent, service_fn};
 use serde_json::{json, Value};
 
-use common::{build_db_client, build_http_client, Charger, ChargerLambdaConfig, Email, HttpClient};
+use common::{build_db_client, build_http_client, Charger, ChargerId, ChargerLambdaConfig, Email, HttpClient};
 
 use crate::adapters::{AdapterError, build_email_client, CoordinatesDatabase, DbId, EmailClient};
 
@@ -27,9 +27,13 @@ async fn main() -> Result<(), Error> {
 
 async fn flow<T: CoordinatesDatabase>(config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, http_client: Rc<HttpClient>, email_client: Rc<EmailClient>) -> Result<Value, Error> {
     for item in db_client.get(config.get_table().0.as_str()).await? {
+        let matches_given_id_for_this_item = |charger: &&Charger| &item.charger_id.0 == &charger.id;
         let chargers = http_client.get_chargers(item.ne_lat, item.ne_lon, item.sw_lat, item.sw_lon).await?;
+
         // we only want to send *one* email
+        // point-free style
         let last_available_charger_if_any = chargers.iter()
+            .filter(matches_given_id_for_this_item)
             .filter(has_available_connector)
             .last();
 

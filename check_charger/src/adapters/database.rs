@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME, Email, DB_EMAIL_NAME};
+use common::{DbClient, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude, Coordinate, DB_ID_NAME, Email, DB_EMAIL_NAME, ChargerId, DB_CHARGER_ID};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::output::ScanOutput;
@@ -17,6 +17,7 @@ impl From<&DbId> for AttributeValue {
 pub struct ScanItem {
     pub id: DbId,
     pub email: Email,
+    pub charger_id: ChargerId,
     pub ne_lat: NorthEastLatitude,
     pub ne_lon: NorthEastLongitude,
     pub sw_lat: SouthWestLatitude,
@@ -31,7 +32,12 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
     fn try_from(map: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         // we should not be able to put an item in our db without a string id. so looser error handling for the id
         let id = map.get(DB_ID_NAME).expect("Database item to have an id").as_s().expect("Database id to be a string").to_string();
-        let email = map.get(DB_EMAIL_NAME).ok_or(AdapterError::ParseError).and_then(|v| v.as_s().map_err(|_| AdapterError::ParseError))?;
+        // map err is a bit annoying
+        let email = map.get(DB_EMAIL_NAME).ok_or(AdapterError::ParseError).and_then(|v| v.as_s().map_err(|e| e.into()))?;
+        let charger_id = match map.get(DB_CHARGER_ID).map(|attribute| attribute.as_n().map(|val_as_str| val_as_str.parse::<i32>())) {
+            Some(Ok(Ok(num))) => Ok(num),
+            _ => Err(AdapterError::ParseError),
+        }?;
 
         let ne_lat = from_map_to_coordinate(map)?;
         let ne_lon = from_map_to_coordinate(map)?;
@@ -41,6 +47,7 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
         Ok(ScanItem {
             id: DbId(id),
             email: Email(email.to_string()),
+            charger_id: ChargerId(charger_id),
             ne_lat,
             ne_lon,
             sw_lat,
@@ -56,12 +63,7 @@ fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>) 
     map.get(C::get_type_name()).ok_or_else(|| AdapterError::ParseError)
         .and_then(|v| v.as_n().map_err(|_| AdapterError::ParseError))
         .and_then(|v| v.parse::<f32>().map(C::new).map_err(|_| AdapterError::ParseError))
-
-    // alternative with less error handling thanks to pattern matching, but a bit harder to read the mappings //
-    // match map.get(C::get_type_name()).map(|v| v.as_n().map(|v| v.parse::<f32>().map(C::new))) {
-    //     Some(Ok(Ok(res))) => Ok(res),
-    //     _ => Err(AdapterError::ParseError)
-    // }
+    // alternative with less error handling thanks to pattern matching, but a bit harder to read the mappings - see above for charger id //
 }
 
 #[async_trait]
