@@ -3,7 +3,7 @@ use std::rc::Rc;
 use lambda_runtime::{Error, LambdaEvent, service_fn};
 use serde_json::{json, Value};
 
-use common::{build_db_client, build_http_client, Charger, ChargerId, ChargerLambdaConfig, Email, HttpClient};
+use common::{build_db_client, build_http_client, Charger, ChargerLambdaConfig, Email, HttpClient};
 
 use crate::adapters::{AdapterError, build_email_client, CoordinatesDatabase, DbId, EmailClient};
 

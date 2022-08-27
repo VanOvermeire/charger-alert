@@ -32,8 +32,10 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
     fn try_from(map: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         // we should not be able to put an item in our db without a string id. so looser error handling for the id
         let id = map.get(DB_ID_NAME).expect("Database item to have an id").as_s().expect("Database id to be a string").to_string();
+
         // map err is a bit annoying
         let email = map.get(DB_EMAIL_NAME).ok_or(AdapterError::ParseError).and_then(|v| v.as_s().map_err(|e| e.into()))?;
+        // alternative with less error handling thanks to pattern matching, but a bit harder to read the mappings
         let charger_id = match map.get(DB_CHARGER_ID).map(|attribute| attribute.as_n().map(|val_as_str| val_as_str.parse::<i32>())) {
             Some(Ok(Ok(num))) => Ok(num),
             _ => Err(AdapterError::ParseError),
@@ -63,7 +65,6 @@ fn from_map_to_coordinate<C: Coordinate>(map: &HashMap<String, AttributeValue>) 
     map.get(C::get_type_name()).ok_or_else(|| AdapterError::ParseError)
         .and_then(|v| v.as_n().map_err(|_| AdapterError::ParseError))
         .and_then(|v| v.parse::<f32>().map(C::new).map_err(|_| AdapterError::ParseError))
-    // alternative with less error handling thanks to pattern matching, but a bit harder to read the mappings - see above for charger id //
 }
 
 #[async_trait]
@@ -110,6 +111,7 @@ mod tests {
         let first = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -118,6 +120,7 @@ mod tests {
         let second = HashMap::from([
             ("id".to_string(), AttributeValue::S("123456".to_string())),
             ("email".to_string(), AttributeValue::S("test2@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("2".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -138,6 +141,7 @@ mod tests {
         let missing_coordinate = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -154,6 +158,7 @@ mod tests {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -174,6 +179,7 @@ mod tests {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("something else".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -190,6 +196,7 @@ mod tests {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::S("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("17.1".to_string())),
@@ -206,6 +213,7 @@ mod tests {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::S("test@test.com".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("fake".to_string())),
@@ -221,6 +229,7 @@ mod tests {
     fn should_return_an_adapter_error_when_email_is_missing() {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("fake".to_string())),
@@ -237,6 +246,7 @@ mod tests {
         let ref input = HashMap::from([
             ("id".to_string(), AttributeValue::S("12345".to_string())),
             ("email".to_string(), AttributeValue::N("1".to_string())),
+            ("charger_id".to_string(), AttributeValue::N("1".to_string())),
             ("nelat".to_string(), AttributeValue::N("55".to_string())),
             ("nelon".to_string(), AttributeValue::N("22.2".to_string())),
             ("swlon".to_string(), AttributeValue::N("fake".to_string())),
