@@ -674,6 +674,7 @@ dependencies = [
  "lambda_http",
  "lambda_runtime",
  "openssl",
+ "query_map",
  "serde",
  "serde_json",
  "tokio",

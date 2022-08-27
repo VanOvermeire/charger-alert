@@ -12,3 +12,4 @@ serde_json = "1.0"
 aws-config = "0.47.0"
 tokio = { version = "1", features = ["full"] }
 openssl = { version = "0.10", features = ["vendored"] }
+query_map = "0.5.0"

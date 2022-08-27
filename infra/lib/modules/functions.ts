@@ -6,7 +6,7 @@ import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 const handler = 'some.handler';
 
-const createRustFunction = (scope: Construct) => (name: string, zip: string, duration: number, environment?: Record<string, string>) => {
+const createRustFunction = (scope: Construct) => (name: string, zip: string, duration = 3, environment: Record<string, string> = {}) => {
     return new Function(scope, name, {
         handler,
         code: Code.fromAsset(zip),
@@ -20,7 +20,7 @@ const createRustFunction = (scope: Construct) => (name: string, zip: string, dur
 export const createFunctions = (scope: Construct) => (table: Table, region: string, source_email: string) => {
     let createRustFunctionForScope = createRustFunction(scope);
 
-    const getChargers = createRustFunctionForScope('GetChargers', '../get_chargers.zip', 3);
+    const getChargers = createRustFunctionForScope('GetChargers', '../get_chargers.zip');
 
     const alertAdder = createRustFunctionForScope('AlertAdder', '../add_alert.zip', 3, {
         REGION: region,
