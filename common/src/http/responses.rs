@@ -1,9 +1,16 @@
 use lambda_http::Response;
+use serde_json::json;
 
 pub fn success_response() -> lambda_http::http::Result<Response<String>> {
+    success_response_with_body(json!({
+        "result": "ok"
+    }).to_string())
+}
+
+pub fn success_response_with_body(body: String) -> lambda_http::http::Result<Response<String>> {
     Response::builder()
         .status(200)
-        .body("Ok".to_string())
+        .body(body)
 }
 
 pub fn bad_request_response(message: &str) -> lambda_http::http::Result<Response<String>> {
