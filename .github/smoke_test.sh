@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# TODO could immediately afterwards clean up the inserted data
-
 echo "Running smoke test by doing a POST to /alert"
 
 base_url=$(aws cloudformation describe-stacks --stack-name ChargerStack --query 'Stacks[0].Outputs[0].OutputValue' --output text)
@@ -18,3 +16,12 @@ curl --location --request POST "${complete_url}" \
     "email": "test@test.com",
     "charger_id": 1
 }'
+
+echo "Removing test items from table"
+# make sure our new item will be found - three seconds should be plenty
+sleep 3
+
+# TODO get name from outputs
+for item in $(aws dynamodb scan --table-name ChargerStack-ChargerAlertTableED5D11D8-W37RU5U8VTS5 --filter-expression "email = :name" --expression-attribute-values '{":name":{"S":"test@test.com"}}' --projection-expression id --query 'Items[]' | jq -rc '.[]'); do
+  aws dynamodb delete-item --table-name ChargerStack-ChargerAlertTableED5D11D8-W37RU5U8VTS5 --key $item
+done
