@@ -1,6 +1,6 @@
 # Charger Alert
 
-Demo application that allows you to keep an eye on available connections for recharging your car.
+Demo application that alerts you when there are available connectors for recharging your car.
 
 ## Status
 
@@ -11,8 +11,6 @@ Demo application that allows you to keep an eye on available connections for rec
 Lambda 1: save a requested location to database
 Lambda 2: on cron, for every location in the db see if a charger is available and if so email the user
 
-Optionally pass in a name or id of a charging point
-
 ## Phase 2
 
 Lambda 1: for a request location, show possible charging stations
@@ -22,20 +20,21 @@ Lambda 3: on cron, see if a charger is available in the given station and if so 
 ## Features
 
 - Automatic testing, building, deploying and smoke testing with GitHub actions. Whole flow takes about 10 minutes
-- Infra as code with CDK, including tests
+- IaC with CDK, including infra tests
 - Rust for the backend code
 
 ## Limitations
 
 - some inconsistencies in approaches (use of traits, generics, hiding or exposing of info), partly caused by me experimenting with approaches
 - error handling incomplete: mapping to our own types, but not doing anything with the underlying errors, which would make debugging issues harder
-- some copying of string etc. that could perhaps be avoided?
+- repeating the lat/long info in get-chargers and add-alert is not ideal. One way to improve this, would be to save the info we get back from get-chargers in a database - so we know all the relevant info when the add call happens
 
 ## Remarks
 
-- Once passed the checker (which was annoying), code worked immediately (ignoring the "I did not give the Lambda permission to invoke Dynamo" part)
-- Similar for macros, just work (and useful)
+Also see comments in the code itself.
+ 
+- Once passed the checker (which was annoying), code worked immediately (well, except for me forgetting the right permissions in the IaC part)
+- Macros avoid some annoying work and are not very hard to write
+- Switching to workspaces was easy locally, but caused some strange issues in GitHub actions (with the openssl dependency)
 - Compiling takes a while, as is well-known
-- Switching to workspaces was easy locally, but caused some strange issues in github actions (with the openssl dependency)
-- Await infects large parts of the code base - FP ideas can help limit this
-- Also see remarks in the code itself
+- Await infects large parts of the code base, though a functional approach can help *limit* this
