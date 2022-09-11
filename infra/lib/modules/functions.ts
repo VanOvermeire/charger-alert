@@ -6,19 +6,18 @@ import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 const handler = 'some.handler';
 
-const createRustFunction = (scope: Construct) => (name: string, zip: string, duration = 3, environment: Record<string, string> = {}) => {
-    return new Function(scope, name, {
+const createRustFunction = (scope: Construct) => (name: string, zip: string, duration = 3, environment: Record<string, string> = {}) =>
+    new Function(scope, name, {
         handler,
         code: Code.fromAsset(zip),
         runtime: Runtime.PROVIDED_AL2,
         timeout: Duration.seconds(duration),
         memorySize: 1024,
         environment,
-    });
-}
+    })
 
 export const createFunctions = (scope: Construct) => (table: Table, region: string, source_email: string) => {
-    let createRustFunctionForScope = createRustFunction(scope);
+    const createRustFunctionForScope = createRustFunction(scope);
 
     const getChargers = createRustFunctionForScope('GetChargers', '../get_chargers.zip');
 

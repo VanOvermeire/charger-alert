@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO could maybe immediately afterwards clean up the data inserted?
+# TODO could immediately afterwards clean up the inserted data
 
 echo "Running smoke test by doing a POST to /alert"
 

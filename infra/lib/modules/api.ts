@@ -1,25 +1,12 @@
 import {Construct} from "constructs";
-import {CfnOutput, Duration} from "aws-cdk-lib";
+import {CfnOutput} from "aws-cdk-lib";
 import {API_VERSION} from "./constants";
 import {Function} from "aws-cdk-lib/aws-lambda";
-import {CorsHttpMethod, HttpApi, HttpMethod} from "@aws-cdk/aws-apigatewayv2-alpha";
+import {HttpApi, HttpMethod} from "@aws-cdk/aws-apigatewayv2-alpha";
 import {HttpLambdaIntegration} from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 
 export const createHttpApi = (scope: Construct) => (chargerAlert: Function, getChargers: Function, region: string): HttpApi => {
-    const httpApi = new HttpApi(scope, 'ChargerAlertApi', {
-        // useful for web testing //
-        corsPreflight: {
-            allowHeaders: ['Authorization'],
-            allowMethods: [
-                CorsHttpMethod.GET,
-                CorsHttpMethod.HEAD,
-                CorsHttpMethod.OPTIONS,
-                CorsHttpMethod.POST,
-            ],
-            allowOrigins: ['*'],
-            maxAge: Duration.days(10),
-        },
-    });
+    const httpApi = new HttpApi(scope, 'ChargerAlertApi');
 
     const alertIntegration = new HttpLambdaIntegration('AlertPost', chargerAlert);
     const getChargersIntegration = new HttpLambdaIntegration('GetChargers', getChargers);
@@ -29,7 +16,6 @@ export const createHttpApi = (scope: Construct) => (chargerAlert: Function, getC
         methods: [HttpMethod.POST],
         integration: alertIntegration,
     });
-
     httpApi.addRoutes({
         path: `${API_VERSION}/chargers`,
         methods: [HttpMethod.GET],
@@ -38,7 +24,7 @@ export const createHttpApi = (scope: Construct) => (chargerAlert: Function, getC
 
     new CfnOutput(scope, 'apiUrl', {
         value: `https://${httpApi.httpApiId}.execute-api.${region}.amazonaws.com`,
-        description: 'The url of the http api',
+        description: 'The url of the api',
     });
 
     return httpApi;

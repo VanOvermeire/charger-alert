@@ -8,5 +8,5 @@ export const createCron = (scope: Construct) => (lambda: Function) =>
     new Rule(scope, 'ChargeCheckerRule', {
         schedule: Schedule.rate(Duration.minutes(5)),
         targets: [new LambdaFunction(lambda)],
-        enabled: false, // TODO
+        enabled: false, // because it's a demo and I don't want it constantly polling the endpoint
     });
