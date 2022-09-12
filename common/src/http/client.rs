@@ -1,44 +1,9 @@
 use std::rc::Rc;
 use reqwest::{Client};
 use reqwest::header::CONTENT_TYPE;
-use serde::{Deserialize, Serialize};
 use crate::{NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
 use crate::http::errors::HttpError;
-
-// for external use, unlike the below structs that map what we receive from the endpoint
-#[derive(Debug)]
-pub struct Charger {
-    pub id: i32,
-    pub lat: f32,
-    pub lng: f32,
-    pub available_connectors: i8,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ChargerInfo {
-    count: u32,
-    items: Vec<Item>
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Item {
-    lat: f32,
-    lng: f32,
-    pool: Pool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Pool {
-    id: i32,
-    name: String,
-    charging_connectors: Vec<Connectors>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Connectors {
-    count: i8,
-    available_count: i8,
-}
+use crate::http::structs::{Connectors, ChargerInfo, Charger};
 
 const BASE_URL: &str = "https://nl.chargemap.com/json/charging/pools/get_from_areas";
 
@@ -90,7 +55,7 @@ fn charger_info_to_chargers(info: ChargerInfo) -> Vec<Charger> {
             id: i.pool.id,
             lat: i.lat,
             lng: i.lng,
-            available_connectors: count(&i.pool.charging_connectors, |c| c.available_count)
+            available_connectors: count(&i.pool.charging_connectors, |c| c.available_count),
         }
     }).collect()
 }
@@ -102,6 +67,7 @@ fn count(connectors: &Vec<Connectors>, field_supplier: fn(&Connectors) -> i8) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::http::structs::{Item, Pool};
 
     #[test]
     fn should_change_charging_info_to_chargers() {
@@ -114,14 +80,14 @@ mod tests {
                 charging_connectors: vec![
                     Connectors {
                         count: 2,
-                        available_count: 1
+                        available_count: 1,
                     },
                     Connectors {
                         count: 3,
-                        available_count: 1
-                    }
-                ]
-            }
+                        available_count: 1,
+                    },
+                ],
+            },
         };
         let second = Item {
             lat: 22.4,
@@ -129,13 +95,13 @@ mod tests {
             pool: Pool {
                 id: 2,
                 name: "second".to_string(),
-                charging_connectors: vec![]
-            }
+                charging_connectors: vec![],
+            },
         };
 
         let info = ChargerInfo {
             count: 2,
-            items: vec![first, second]
+            items: vec![first, second],
         };
 
         let result = charger_info_to_chargers(info);

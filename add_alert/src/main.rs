@@ -19,6 +19,7 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 }
 
 // uses trait instead of a specific implementation - easier to switch out
+// TODO write test for this? might need to move it?
 async fn flow<T: CoordinatesDb>(request: Request, config: Rc<ChargerLambdaConfig>, arc_client: Rc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
