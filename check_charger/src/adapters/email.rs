@@ -32,7 +32,7 @@ impl EmailClient {
     }
 }
 
-// TODO better message - body should contain some info about the actual connector
+// better message would be nice - body should contain some info about the actual connector
 fn build_email_message(source: &str, destination: &Email) -> (Message, Option<String>, Option<Destination>) {
     let message = Message::builder()
         .subject(Content::builder()
