@@ -50,8 +50,8 @@ impl TryFrom<&HashMap<String, AttributeValue>> for ScanItem {
             id: DbId(id),
             email: Email(email.to_string()),
             charger_id: ChargerId(charger_id),
-            ne_lat,
-            ne_lon,
+            ne_lat, // this property requires NorthEastLatitude - so the type above is inferred as being NorthEastLatitude, which implements Coordinate
+            ne_lon, // similar for these
             sw_lat,
             sw_lon,
         })

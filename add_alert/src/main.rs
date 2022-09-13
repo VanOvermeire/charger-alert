@@ -19,7 +19,6 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 }
 
 // uses trait instead of a specific implementation - easier to switch out
-// TODO write test for this? might need to move it?
 async fn flow<T: CoordinatesDb>(request: Request, config: Rc<ChargerLambdaConfig>, arc_client: Rc<T>) -> lambda_http::http::Result<Response<String>> {
     match <lambda_http::http::Request<Body> as TryInto<ChargerRequest>>::try_into(request) {
         Ok(req) => {
@@ -31,5 +30,52 @@ async fn flow<T: CoordinatesDb>(request: Request, config: Rc<ChargerLambdaConfig
         Err(e) => {
             return e.to_http_response()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::env;
+    use async_trait::async_trait;
+    use lambda_http::http::header::CONTENT_TYPE;
+    use common::{ChargerId, Email, NorthEastLatitude, NorthEastLongitude, SouthWestLatitude, SouthWestLongitude};
+    use crate::adapters::AdapterError;
+    use super::*;
+
+    struct FakeDB {}
+
+    #[async_trait]
+    impl CoordinatesDb for FakeDB {
+        async fn add(&self, table: &str, _email: Email, charger_id: ChargerId, _ne_lat: NorthEastLatitude, _ne_lon: NorthEastLongitude, _sw_lat: SouthWestLatitude, _sw_lon: SouthWestLongitude) -> Result<(), AdapterError> {
+            assert_eq!(charger_id.0, 5);
+            assert_eq!(table, "fake-table");
+
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn flow_should_work_for_valid_request() {
+        // configure env
+        env::set_var("REGION", "fake-west-1");
+        env::set_var("TABLE", "fake-table");
+
+        let request = build_request();
+        let config = Rc::new(ChargerLambdaConfig::new().expect("Test config to be created"));
+        let db = Rc::new(FakeDB {});
+
+        let result = flow(request, config, db).await;
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().status(), 200);
+    }
+
+    fn build_request() -> Request {
+        let body_string = r#"{ "ne_lat": 2.3, "ne_lon": 1.5, "sw_lat": 55, "sw_lon": 12.8, "email": "test@test.com", "charger_id": 5 }"#;
+        let mut request = Request::new(Body::Text(body_string.to_owned()));
+        let headers = request.headers_mut();
+        headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+
+        request
     }
 }
