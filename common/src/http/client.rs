@@ -29,12 +29,10 @@ impl HttpClient {
             .map(charger_info_to_chargers)
     }
 
-    // internally we do a post, but it doesn't actually change anything. so get seems like a fitting name
+    // internally we do a post, but it doesn't actually change anything. so 'get' seems like a fitting name
     async fn get(&self, ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> Result<ChargerInfo, HttpError> {
-        let body = format!("NELat={}&NELng={}&SWLat={}&SWLng={}", ne_lat.0, ne_lon.0, sw_lat.0, sw_lon.0);
-
         Ok(self.client.post(BASE_URL)
-            .body(body)
+            .body(build_get_body(ne_lat, ne_lon, sw_lat, sw_lon))
             .header(CONTENT_TYPE, "application/x-www-form-urlencoded; charset=UTF-8")
             .send()
             .await?
@@ -47,6 +45,10 @@ pub async fn build_http_client() -> Rc<HttpClient> {
     Rc::new(
         HttpClient::default(),
     )
+}
+
+fn build_get_body(ne_lat: NorthEastLatitude, ne_lon: NorthEastLongitude, sw_lat: SouthWestLatitude, sw_lon: SouthWestLongitude) -> String {
+    format!("NELat={}&NELng={}&SWLat={}&SWLng={}", ne_lat.0, ne_lon.0, sw_lat.0, sw_lon.0)
 }
 
 fn charger_info_to_chargers(info: ChargerInfo) -> Vec<Charger> {
@@ -68,6 +70,18 @@ fn count(connectors: &Vec<Connectors>, field_supplier: fn(&Connectors) -> i8) ->
 mod tests {
     use super::*;
     use crate::http::structs::{Item, Pool};
+
+    #[test]
+    fn should_build_correct_body_for_get() {
+        let ne_lat = NorthEastLatitude(1.1);
+        let ne_lon = NorthEastLongitude(2.0);
+        let sw_lat = SouthWestLatitude(3.2);
+        let sw_lon = SouthWestLongitude(4.3);
+
+        let result = build_get_body(ne_lat, ne_lon, sw_lat, sw_lon);
+
+        assert_eq!(result, "NELat=1.1&NELng=2&SWLat=3.2&SWLng=4.3".to_string());
+    }
 
     #[test]
     fn should_change_charging_info_to_chargers() {

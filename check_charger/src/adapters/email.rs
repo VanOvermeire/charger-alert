@@ -19,8 +19,6 @@ impl EmailClient {
 
     pub async fn send(&self, to_email: &Email) -> Result<(), AdapterError> {
         let (message, source, destination) = build_email_message(self.source.as_str(), to_email);
-        println!("Sending an email to {}", to_email.0);
-
         let _ = self.client.send_email()
             .set_source(source)
             .set_destination(destination)
