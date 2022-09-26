@@ -70,7 +70,7 @@ describe('Charger infrastructure', () => {
         });
     });
 
-    it('should create an API with lambda integration and alert route', () => {
+    it('should create an API with both an alert and chargers endpoint', () => {
         const template = getTemplate();
 
         template.hasResourceProperties('AWS::ApiGatewayV2::Api', {});

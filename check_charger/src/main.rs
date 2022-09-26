@@ -54,5 +54,5 @@ fn has_available_connector(charger: &&Charger) -> bool {
 
 async fn send_email_and_delete_item<T: CoordinatesDatabase>(id: &DbId, email: &Email, config: Rc<ChargerLambdaConfig>, db_client: Rc<T>, email_client: Rc<EmailClient>) -> Result<(), AdapterError> {
     email_client.send(email).await?;
-    Ok(db_client.delete(config.get_table().0.as_str(), id).await?)
+    db_client.delete(config.get_table().0.as_str(), id).await
 }
